@@ -1,8 +1,7 @@
 package com.chalcodes.event.exec;
 
+import javax.swing.*;
 import java.util.concurrent.Executor;
-
-import javax.swing.SwingUtilities;
 
 /**
  * Queues tasks in the AWT/Swing event dispatch thread.

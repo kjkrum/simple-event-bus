@@ -1,9 +1,9 @@
 package com.chalcodes.event.exec;
 
-import java.util.concurrent.Executor;
-
 import android.os.Handler;
 import android.os.Looper;
+
+import java.util.concurrent.Executor;
 
 /**
  * Queues tasks in the Android main thread.
@@ -15,6 +15,6 @@ public class AndroidExecutor implements Executor {
 
 	@Override
 	public void execute(final Runnable command) {
-		mHandler.post(command);		
+		mHandler.post(command);
 	}
 }

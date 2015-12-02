@@ -1,52 +1,116 @@
 package com.chalcodes.event;
 
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Executor;
 
 /**
- * Contains a static event bus factory.  This class is thread-safe.
+ * A type-safe event bus.
  *
+ * @param <T> the event type
  * @author Kevin Krumwiede
  */
-public class SimpleEventBus {
-    private static final Object gLock = new Object();
-    private static ClassBusFactory gFactory;
+public class SimpleEventBus<T> implements EventBus<T> {
+	protected final Executor mExecutor;
+	private final EventBus<Exception> mExceptionBus;
+	private final boolean mNullAllowed;
+	private final Set<EventReceiver<T>> mReceivers = new CopyOnWriteArraySet<EventReceiver<T>>();
 
-    /**
-     * Initializes the static bus factory.
-     *
-     * @param executor the broadcast executor
-     * @param exceptionBus the exception bus; may be null
-     * @param sticky true if buses should be sticky; otherwise false
-     * @param nullAllowed true if buses should allow null events; otherwise false
-     * @throws IllegalStateException if the factory is already initialized
-     */
-    public static void init(final Executor executor, final EventBus<Exception> exceptionBus,
-                            final boolean sticky, final boolean nullAllowed) {
-        synchronized(gLock) {
-            if (gFactory != null) {
-                throw new IllegalStateException();
-            }
-            gFactory = new ClassBusFactory(executor, exceptionBus, sticky, nullAllowed);
-        }
-    }
+	/**
+	 * Creates a new event bus.  The executor should be single-threaded, and
+	 * all methods except {@link #broadcast(Object)} should be called in the
+	 * executor thread.  If an exception bus is provided, any exception thrown
+	 * by a receiver will be broadcast on it.
+	 *
+	 * @param executor     the broadcast executor
+	 * @param exceptionBus the exception bus; may be null
+	 * @param nullAllowed  true if this bus should allow null events; otherwise
+	 *                     false
+	 * @throws NullPointerException if executor is null
+	 */
+	public SimpleEventBus(final Executor executor, final EventBus<Exception> exceptionBus,
+						  final boolean nullAllowed) {
+		if(executor == null) {
+			throw new NullPointerException();
+		}
+		mExecutor = executor;
+		mExceptionBus = exceptionBus;
+		mNullAllowed = nullAllowed;
+	}
 
-    /**
-     * Gets the event bus for a class.
-     *
-     * @param klass the class
-     * @param <T> the event type
-     * @return the event bus
-     * @throws IllegalStateException if the factory has not been initialized
-     * @see #init(Executor, EventBus, boolean, boolean)
-     */
-    public static <T> EventBus<T> getBus(final Class<T> klass) {
-        synchronized(gLock) {
-            if (gFactory == null) {
-                throw new IllegalStateException();
-            }
-            return gFactory.getBus(klass);
-        }
-    }
+	/**
+	 * Gets the exception bus for this bus.
+	 *
+	 * @return the exception bus
+	 */
+	@Override
+	public EventBus<Exception> getExceptionBus() {
+		return mExceptionBus;
+	}
 
-    private SimpleEventBus() {}
+	/**
+	 * Immediately registers a receiver.
+	 *
+	 * @param receiver the receiver to register
+	 */
+	@Override
+	public boolean register(final EventReceiver<T> receiver) {
+		if(receiver == null) {
+			throw new NullPointerException();
+		}
+		return mReceivers.add(receiver);
+	}
+
+	/**
+	 * Immediately unregisters a receiver.  The receiver is guaranteed not to
+	 * receive any pending event dispatch.
+	 *
+	 * @param receiver the receiver to unregister
+	 */
+	@Override
+	public void unregister(final EventReceiver<T> receiver) {
+		if(receiver == null) {
+			throw new NullPointerException();
+		}
+		mReceivers.remove(receiver);
+	}
+
+	/**
+	 * Asynchronously broadcasts an event.
+	 *
+	 * @param event the event to broadcast
+	 * @throws NullPointerException if event is null and this bus does not
+	 *                              allow null events
+	 */
+	@Override
+	public void broadcast(final T event) {
+		if(event == null && !mNullAllowed) {
+			throw new NullPointerException();
+		}
+		mExecutor.execute(new Runnable() {
+			final Iterator<EventReceiver<T>> iter = mReceivers.iterator();
+
+			@Override
+			public void run() {
+				while(iter.hasNext()) {
+					dispatch(iter.next(), event);
+				}
+			}
+		});
+	}
+
+	protected void dispatch(final EventReceiver<T> receiver, final T event) {
+		if(mReceivers.contains(receiver)) {
+			try {
+				receiver.onEvent(this, event);
+			} catch(Exception e) {
+				mReceivers.remove(receiver);
+				if(mExceptionBus != null) {
+					mExceptionBus.broadcast(e);
+				}
+			}
+		}
+	}
+
 }
