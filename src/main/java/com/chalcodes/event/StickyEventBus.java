@@ -3,8 +3,8 @@ package com.chalcodes.event;
 import java.util.concurrent.Executor;
 
 /**
- * An {@link SimpleEventBus} that retains the last event broadcast and dispatches it
- * to any subsequently registered receivers.
+ * An event bus that retains the last event broadcast and dispatches it to any
+ * subsequently registered receivers.
  *
  * @param <T> the event type
  * @author Kevin Krumwiede

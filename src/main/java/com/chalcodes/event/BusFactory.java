@@ -1,7 +1,7 @@
 package com.chalcodes.event;
 
 /**
- * Creates new {@link SimpleEventBus} instances.
+ * Creates new event buses.
  *
  * @author Kevin Krumwiede
  */
