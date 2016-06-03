@@ -1,5 +1,7 @@
 package com.chalcodes.event;
 
+import javax.annotation.Nonnull;
+
 /**
  * Creates new event buses.
  *
@@ -11,5 +13,5 @@ public interface BusFactory {
 	 *
 	 * @return the new bus
 	 */
-	EventBus newBus();
+	@Nonnull EventBus newBus();
 }

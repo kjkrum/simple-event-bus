@@ -1,5 +1,8 @@
 package com.chalcodes.event;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
  * A type-safe event bus.  Only {@link #broadcast(Object)} is required to be
  * thread-safe.
@@ -15,7 +18,7 @@ public interface EventBus<T> {
 	 * @param receiver the receiver to register
 	 * @return true if the receiver was registered; otherwise false
 	 */
-	boolean register(EventReceiver<T> receiver);
+	boolean register(@Nonnull EventReceiver<T> receiver);
 
 	/**
 	 * Unregisters a receiver.  The receiver is guaranteed not to receive any
@@ -25,7 +28,7 @@ public interface EventBus<T> {
 	 * @param receiver the receiver to unregister
 	 * @return true if the receiver was unregistered; otherwise false
 	 */
-	boolean unregister(EventReceiver<T> receiver);
+	boolean unregister(@Nonnull EventReceiver<T> receiver);
 
 	/**
 	 * Broadcasts an event to receivers that are registered at the time this
@@ -35,7 +38,7 @@ public interface EventBus<T> {
 	 *
 	 * @param event the event to broadcast
 	 */
-	void broadcast(T event);
+	void broadcast(@Nullable T event);
 
 	/**
 	 * Gets the bus on which this bus broadcasts exceptions thrown by its
@@ -43,5 +46,5 @@ public interface EventBus<T> {
 	 *
 	 * @return the exception bus; may be null
 	 */
-	EventBus<Exception> getExceptionBus();
+	@Nullable EventBus<Exception> getExceptionBus();
 }

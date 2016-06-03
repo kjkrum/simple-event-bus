@@ -1,5 +1,7 @@
 package com.chalcodes.event;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -14,13 +16,13 @@ public class StickyEventBus<T> extends SimpleEventBus<T> {
 	private boolean mHasSticky;
 	private T mStickyEvent;
 
-	public StickyEventBus(final Executor executor, final EventBus<Exception> exceptionBus,
+	public StickyEventBus(@Nonnull final Executor executor, @Nullable final EventBus<Exception> exceptionBus,
 						  final boolean nullAllowed) {
 		super(executor, exceptionBus, nullAllowed);
 	}
 
 	@Override
-	public boolean register(final EventReceiver<T> receiver) {
+	public boolean register(@Nonnull final EventReceiver<T> receiver) {
 		synchronized(mLock) {
 			final boolean added = super.register(receiver);
 			if(added && mHasSticky) {
@@ -38,7 +40,7 @@ public class StickyEventBus<T> extends SimpleEventBus<T> {
 	}
 
 	@Override
-	public void broadcast(T event) {
+	public void broadcast(@Nullable T event) {
 		synchronized(mLock) {
 			super.broadcast(event);
 			mHasSticky = true;

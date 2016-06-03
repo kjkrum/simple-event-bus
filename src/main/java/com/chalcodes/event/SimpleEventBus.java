@@ -1,5 +1,7 @@
 package com.chalcodes.event;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -18,7 +20,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	private final EventBus<Exception> mExceptionBus;
 	private final boolean mNullAllowed;
 	/** Copy-on-write. */
-	private volatile Set<EventReceiver<T>> mReceivers;
+	@Nonnull private volatile Set<EventReceiver<T>> mReceivers = new HashSet<EventReceiver<T>>();
 
 	/**
 	 * Creates a new event bus.  If an exception bus is provided, any
@@ -30,8 +32,9 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	 *                     otherwise false
 	 * @throws NullPointerException if executor is null
 	 */
-	public SimpleEventBus(final Executor executor, final EventBus<Exception> exceptionBus,
+	public SimpleEventBus(@Nonnull final Executor executor, @Nullable final EventBus<Exception> exceptionBus,
 						  final boolean nullAllowed) {
+		// noinspection ConstantConditions
 		if(executor == null) {
 			throw new NullPointerException();
 		}
@@ -46,17 +49,12 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	}
 
 	@Override
-	public boolean register(final EventReceiver<T> receiver) {
+	public boolean register(@Nonnull final EventReceiver<T> receiver) {
+		// noinspection ConstantConditions
 		if(receiver == null) {
 			throw new NullPointerException();
 		}
-		if(mReceivers == null) {
-			final Set<EventReceiver<T>> tmp = new HashSet<EventReceiver<T>>();
-			tmp.add(receiver);
-			mReceivers = tmp;
-			return true;
-		}
-		else if(mReceivers.contains(receiver)) {
+		if(mReceivers.contains(receiver)) {
 			return false;
 		}
 		else {
@@ -68,21 +66,16 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	}
 
 	@Override
-	public boolean unregister(final EventReceiver<T> receiver) {
+	public boolean unregister(@Nonnull final EventReceiver<T> receiver) {
+		// noinspection ConstantConditions
 		if(receiver == null) {
 			throw new NullPointerException();
 		}
-		if(mReceivers != null && mReceivers.contains(receiver)) {
-			if(mReceivers.size() == 1) {
-				mReceivers = null;
-				return true;
-			}
-			else {
-				final Set<EventReceiver<T>> tmp = new HashSet<EventReceiver<T>>(mReceivers);
-				tmp.remove(receiver);
-				mReceivers = tmp;
-				return true;
-			}
+		if(mReceivers.contains(receiver)) {
+			final Set<EventReceiver<T>> tmp = new HashSet<EventReceiver<T>>(mReceivers);
+			tmp.remove(receiver);
+			mReceivers = tmp;
+			return true;
 		}
 		else {
 			return false;
@@ -97,23 +90,21 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	 *                              allow null events
 	 */
 	@Override
-	public void broadcast(final T event) {
+	public void broadcast(@Nullable final T event) {
 		if(event == null && !mNullAllowed) {
 			throw new NullPointerException();
 		}
 		final Set<EventReceiver<T>> snapshot = mReceivers;
-		if(snapshot != null) {
-			mExecutor.execute(new Runnable() {
-				final Iterator<EventReceiver<T>> iter = snapshot.iterator();
+		mExecutor.execute(new Runnable() {
+			final Iterator<EventReceiver<T>> iter = snapshot.iterator();
 
-				@Override
-				public void run() {
-					while(iter.hasNext()) {
-						dispatch(iter.next(), event);
-					}
+			@Override
+			public void run() {
+				while(iter.hasNext()) {
+					dispatch(iter.next(), event);
 				}
-			});
-		}
+			}
+		});
 	}
 
 	/**
@@ -123,8 +114,8 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	 * @param receiver the receiver
 	 * @param event the event to dispatch
 	 */
-	protected void dispatch(final EventReceiver<T> receiver, final T event) {
-		if(mReceivers != null && mReceivers.contains(receiver)) {
+	protected void dispatch(@Nonnull final EventReceiver<T> receiver, @Nullable final T event) {
+		if(mReceivers.contains(receiver)) {
 			try {
 				receiver.onEvent(this, event);
 			} catch(Exception e) {
