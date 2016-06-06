@@ -4,11 +4,14 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.junit.Assert.*;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link StickyEventBus}.
@@ -30,21 +33,22 @@ public class StickyEventBusTest {
 		}
 	}
 
-	/* Values set during tests, to be checked by the thread running the test. */
 	private volatile int mReceiverCalled;
-	private volatile String mEventValue;
 
+	/**
+	 * Basic sticky functionality.
+	 */
 	@Test
-	public void receiverShouldReceiveStickyEvent() {
+	public void receiveStickyEvent() {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final String testEvent = "test";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				final SimpleEventBus<String> bus = new StickyEventBus<String>(gExecutor, null, false);
+				final EventBus<String> bus = new StickyEventBus<String>(gExecutor, null);
 				final EventReceiver<String> receiver = new EventReceiver<String>() {
 					@Override
-					public void onEvent(EventBus<String> bus, String event) {
+					public void onEvent(@Nonnull EventBus<String> bus, String event) {
 						if(testEvent.equals(event)) {
 							++mReceiverCalled;
 						}
@@ -65,17 +69,55 @@ public class StickyEventBusTest {
 		} catch(InterruptedException e) {
 			fail("interrupted");
 		}
-		assertTrue(mReceiverCalled > 0);
+		assertTrue(mReceiverCalled == 1);
 	}
 
+	private volatile String mEventValue;
+
 	@Test
-	public void eventShouldBecomeStickyImmediately() {
+	public void unregisteredReceiver() {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final String testEvent = "test";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				final StickyEventBus<String> bus = new StickyEventBus<String>(gExecutor, null, false);
+				final EventBus<String> bus = new StickyEventBus<String>(gExecutor, null);
+				final EventReceiver<String> receiver = new EventReceiver<String>() {
+					@Override
+					public void onEvent(@Nonnull EventBus<String> bus, String event) {
+						++mReceiverCalled;
+					}
+				};
+				bus.broadcast(testEvent);
+				bus.register(receiver);
+				bus.unregister(receiver);
+				gExecutor.execute(new Runnable() {
+					@Override
+					public void run() {
+						latch.countDown();
+					}
+				});
+			}
+		});
+		try {
+			latch.await();
+		} catch(InterruptedException e) {
+			fail("interrupted");
+		}
+		assertTrue(mReceiverCalled == 0);
+	}
+
+	/**
+	 * An event becomes sticky immediately, even without a receiver.
+	 */
+	@Test
+	public void eventBecomesSticky() {
+		final CountDownLatch latch = new CountDownLatch(1);
+		final String testEvent = "test";
+		gExecutor.execute(new Runnable() {
+			@Override
+			public void run() {
+				final StickyEventBus<String> bus = new StickyEventBus<String>(gExecutor, null);
 				bus.broadcast(testEvent);
 				mEventValue = bus.getSticky();
 				latch.countDown();
@@ -89,64 +131,28 @@ public class StickyEventBusTest {
 		assertEquals(testEvent, mEventValue);
 	}
 
+	/**
+	 * Tests for regression of <a
+	 * href="https://github.com/kjkrum/simple-event-bus/issues/1">issue
+	 * #1</a>.
+	 */
 	@Test
-	public void unregisteredReceiverShouldNotReceiveStickyEvent() {
-		final CountDownLatch latch = new CountDownLatch(1);
-		final String testEvent = "test";
-		gExecutor.execute(new Runnable() {
-			@Override
-			public void run() {
-				final SimpleEventBus<String> bus = new StickyEventBus<String>(gExecutor, null, false);
-				final EventReceiver<String> receiver = new EventReceiver<String>() {
-					@Override
-					public void onEvent(EventBus<String> bus, String event) {
-						++mReceiverCalled;
-					}
-				};
-				bus.broadcast(testEvent);
-				// queuing this is no longer necessary, but shouldn't make any difference
-				gExecutor.execute(new Runnable() {
-					@Override
-					public void run() {
-						bus.register(receiver);
-						bus.unregister(receiver);
-						gExecutor.execute(new Runnable() {
-							@Override
-							public void run() {
-								latch.countDown();
-							}
-						});
-					}
-				});
-			}
-		});
-		try {
-			latch.await();
-		} catch(InterruptedException e) {
-			fail("interrupted");
-		}
-		assertTrue(mReceiverCalled == 0);
-	}
-
-	// https://github.com/kjkrum/simple-event-bus/issues/1
-	@Test
-	public void issueOne() {
+	public void issue1() {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final String oldEvent = "foo";
 		final String newEvent = "bar";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				final SimpleEventBus<String> bus = new StickyEventBus<String>(gExecutor, null, false);
+				final SimpleEventBus<String> bus = new StickyEventBus<String>(gExecutor, null);
 				bus.broadcast(oldEvent);
-				// queuing this is no longer necessary, but shouldn't make any difference
 				gExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
 						bus.broadcast(newEvent);
 						bus.register(new EventReceiver<String>() {
 							@Override
-							public void onEvent(EventBus<String> bus, String event) {
+							public void onEvent(@Nonnull EventBus<String> bus, String event) {
 								mEventValue = event;
 							}
 						});
@@ -167,5 +173,4 @@ public class StickyEventBusTest {
 		}
 		assertEquals(newEvent, mEventValue);
 	}
-
 }

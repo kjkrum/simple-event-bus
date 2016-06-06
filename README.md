@@ -1,11 +1,27 @@
 # simple-event-bus
-A type-safe event publication API designed for Android, Swing, and other Java frameworks.  The author is using `simple-event-bus` in a large Android project, and will declare the API stable after using it in at least one other project.
-
-# Overview
-Key classes include the `EventBus` interface and its two concrete implementations, `SimpleEventBus` and `StickyEventBus`.  A `StickyEventBus` retains the last event broadcast and dispatches it to any subsequently registered receiver.  Each event bus has an optional exception bus on which receivers may broadcast caught exceptions, and on which the bus will broadcast any runtime exception propagating from its receivers.  Any number of buses can share the same exception bus.
+A type-safe event publication API designed for Android, Swing, and other Java frameworks.  Key classes include the `EventBus` interface and its two concrete implementations, `SimpleEventBus` and `StickyEventBus`.
   
-`SimpleEventBus` and `StickyEventBus` accept events from any thread and broadcast them using an `Executor` provided to their constructors.  The executor should be single-threaded, and all methods except `broadcast` should be called in the executor thread.  Any number of buses can share the same `Executor`.  A typical pattern would be for the `Executor` to dispatch events on the framework's main thread.
+The author is using `simple-event-bus` in a non-trivial Android project, and will declare the API stable after using it in at least one other project.
 
+## `SimpleEventBus`
+* Events may be broadcast from any thread.
+* Events may be synchronously filtered when broadcast.  For example, buses may prohibit null events.
+* Events are dispatched by a single-threaded `Executor`.  The executor may simply delegate to the framework's main thread.
+* **Receivers should be registered and unregistered only in the executor thread.**
+* The collection of receivers is a set, not a list.
+* Events are dispatched to every receiver that was registered when the event was broadcast, and which is still registered when the event is delivered.
+* Each bus may have an exception bus on which it broadcasts runtime exceptions thrown by receivers.
+* Any receiver that throws an exception is immediately unregistered.
+* Any number of buses can share the same executor and exception bus.
+
+## `StickyEventBus`
+* Stickiness is a property of the bus, not a property of events.
+* A sticky bus retains a strong reference to the last event broadcast.
+* The sticky event is dispatched to newly registered receivers.
+* The sticky event can be cleared.  
+  
+# Examples
+A typical executor:
 ```java
 public class AndroidExecutor implements Executor {
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -17,31 +33,34 @@ public class AndroidExecutor implements Executor {
 }
 ```
 
-The `EventBus` interface doesn't preclude an implementation that supports a multi-threaded `Executor`.  The author simply hasn't needed one.
-
-# Examples
-This example shows basic usage.
+Basic usage:
 ```java
+// in any thread
 final Executor executor = new AndroidExecutor();
 final EventBus<Exception> exceptionBus =
-        new SimpleEventBus<>(executor, null, false);
+        new SimpleEventBus<>(executor, null, null);
 final EventBus<Foo> fooBus =
-        new StickyEventBus<>(executor, exceptionBus, false);
+        new StickyEventBus<>(executor, exceptionBus, EventFilters.<Foo>discardNull());
+// in main thread
 fooBus.register(new EventReceiver<Foo> {
     @Override
-    onEvent(final EventBus<Foo> bus, final Foo event) {
+    onEvent(@Nonnull final EventBus<Foo> bus, final Foo event) {
         // ...
     }
 });
+// in any thread
 fooBus.broadcast(new Foo(42));
 ```
-In this example, `mFooReceiver` will receive the event if and only if `fooBus` is sticky.
+`mFooReceiver` will receive the event if and only if `fooBus` is sticky:
 ```java
+// in main thread
 fooBus.broadcast(new Foo(888));
 fooBus.register(mFooReceiver);
 ```
-Assuming this example is itself running in the executor thread, `mFooReceiver` is guaranteed *not* to receive the event.  This is especially important on Android, where a call to an unregistered receiver in a stopped activity could easily result in a crash.
+`mFooReceiver` is guaranteed *not* to receive the event:
 ```java
+// in main thread
 fooBus.broadcast(new Foo(13013));
 fooBus.unregister(mFooReceiver);
 ```
+This guarantee is especially important on Android, where a delayed call to an unregistered receiver could easily lead to a crash.

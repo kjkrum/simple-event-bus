@@ -5,8 +5,9 @@ import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
- * An event bus that retains the last event broadcast and dispatches it to any
- * subsequently registered receivers.
+ * An event bus that holds a strong reference to the last event broadcast.
+ * The sticky event will be dispatched to any subsequently registered
+ * receiver.
  *
  * @param <T> the event type
  * @author Kevin Krumwiede
@@ -16,9 +17,15 @@ public class StickyEventBus<T> extends SimpleEventBus<T> {
 	private boolean mHasSticky;
 	private T mStickyEvent;
 
-	public StickyEventBus(@Nonnull final Executor executor, @Nullable final EventBus<Exception> exceptionBus,
-						  final boolean nullAllowed) {
-		super(executor, exceptionBus, nullAllowed);
+	public StickyEventBus(@Nonnull final Executor executor,
+						   @Nullable final EventBus<Exception> exceptionBus,
+						   @Nullable final EventFilter<T> eventFilter) {
+		super(executor, exceptionBus, eventFilter);
+	}
+
+	public StickyEventBus(@Nonnull final Executor executor,
+						   @Nullable final EventBus<Exception> exceptionBus) {
+		this(executor, exceptionBus, null);
 	}
 
 	@Override
@@ -40,11 +47,14 @@ public class StickyEventBus<T> extends SimpleEventBus<T> {
 	}
 
 	@Override
-	public void broadcast(@Nullable T event) {
+	public boolean broadcast(@Nullable T event) {
 		synchronized(mLock) {
-			super.broadcast(event);
-			mHasSticky = true;
-			mStickyEvent = event;
+			if(super.broadcast(event)) {
+				mHasSticky = true;
+				mStickyEvent = event;
+				return true;
+			}
+			return false;
 		}
 	}
 

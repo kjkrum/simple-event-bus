@@ -4,6 +4,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,23 +33,26 @@ public class SimpleEventBusTest {
 		}
 	}
 
-	/* Values set during tests, to be checked by the thread running the test. */
-	private volatile int mReceiverCalled;
-	private volatile String mEventValue;
+	private volatile int mReceivedCount;
 
-	@Test
-	public void receiverShouldReceiveEvent() {
+	/**
+	 * Generic filter test.
+	 *
+	 * @param testEvent the event to broadcast
+	 * @param filter the event filter to apply
+	 * @param receivedCount what {@link #mReceivedCount} should be after the test
+	 */
+	private void test(@Nullable final Object testEvent, @Nullable final EventFilter<Object> filter, final int receivedCount) {
 		final CountDownLatch latch = new CountDownLatch(1);
-		final String testEvent = "test";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, null, false);
-				final EventReceiver<String> receiver = new EventReceiver<String>() {
+				final SimpleEventBus<Object> bus = new SimpleEventBus<Object>(gExecutor, null, filter);
+				final EventReceiver<Object> receiver = new EventReceiver<Object>() {
 					@Override
-					public void onEvent(EventBus<String> bus, String event) {
-						if(testEvent.equals(event)) {
-							++mReceiverCalled;
+					public void onEvent(@Nonnull EventBus<Object> bus, Object event) {
+						if(equal(testEvent, event)) {
+							++mReceivedCount;
 						}
 					}
 				};
@@ -63,24 +68,66 @@ public class SimpleEventBusTest {
 		});
 		try {
 			latch.await();
-		} catch(InterruptedException e) {
+		}
+		catch(InterruptedException e) {
 			fail("interrupted");
 		}
-		assertTrue(mReceiverCalled > 0);
+		assertTrue(mReceivedCount == receivedCount);
 	}
 
+	// Objects.equals(...) requires 1.7
+	private static boolean equal(Object obj0, Object obj1) {
+		return obj0 == null ? obj1 == null : obj0.equals(obj1);
+	}
+
+	/**
+	 * A bus with no filter accepts any event.
+	 */
 	@Test
-	public void unregisteredReceiverShouldNotReceiveEvent() {
+	public void noFilter() {
+		test(null, null, 1);
+		test("test", null, 2);
+	}
+
+	/**
+	 * A bus with a discard null filter only accepts non-null events.
+	 */
+	@Test
+	public void discardNullFilter() {
+		test(null, EventFilters.discardNull(), 0);
+		test("test", EventFilters.discardNull(), 1);
+	}
+
+	/**
+	 * A bus with an accepting filter accepts any event.
+	 */
+	@Test
+	public void acceptFilter() {
+		final EventFilter<Object> filter = new EventFilter<Object>() {
+			@Override
+			public boolean isAccepted(final Object event) {
+				return true;
+			}
+		};
+		test(null, filter, 1);
+		test("test", filter, 2);
+	}
+
+	/**
+	 * An unregistered receiver is not called even if an event is queued for it.
+	 */
+	@Test
+	public void unregisteredReceiver() {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final String testEvent = "test";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, null, false);
+				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, null);
 				final EventReceiver<String> receiver = new EventReceiver<String>() {
 					@Override
-					public void onEvent(EventBus<String> bus, String event) {
-						++mReceiverCalled;
+					public void onEvent(@Nonnull EventBus<String> bus, String event) {
+						++mReceivedCount;
 					}
 				};
 				bus.register(receiver);
@@ -99,40 +146,44 @@ public class SimpleEventBusTest {
 		} catch(InterruptedException e) {
 			fail("interrupted");
 		}
-		assertTrue(mReceiverCalled == 0);
+		assertTrue(mReceivedCount == 0);
 	}
 
+	private volatile int mExceptionReceivedCount;
+
+	/**
+	 * A receiver that throws an exception is removed, and the exception is
+	 * broadcast on the exception bus.
+	 */
 	@Test
-	public void exceptionShouldBeBroadcast() {
+	public void badReceiver() {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final String testEvent = "test";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 				final SimpleEventBus<Exception> exceptionBus =
-						new SimpleEventBus<Exception>(gExecutor, null, false);
+						new SimpleEventBus<Exception>(gExecutor, null, EventFilters.<Exception>discardNull());
 				final EventReceiver<Exception> exceptionReceiver = new EventReceiver<Exception>() {
 					@Override
-					public void onEvent(EventBus<Exception> bus, Exception event) {
+					public void onEvent(@Nonnull EventBus<Exception> bus, Exception event) {
 						if(event != null) {
-							++mReceiverCalled;
+							++mExceptionReceivedCount;
 						}
 					}
 				};
 				exceptionBus.register(exceptionReceiver);
-				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, exceptionBus, false);
+				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, exceptionBus, null);
 				final EventReceiver<String> badReceiver = new EventReceiver<String>() {
 					@Override
-					public void onEvent(EventBus<String> bus, String event) {
+					public void onEvent(@Nonnull EventBus<String> bus, String event) {
+						++mReceivedCount;
 						throw new RuntimeException();
 					}
 				};
 				bus.register(badReceiver);
 				bus.broadcast(testEvent);
-				// test broadcast runs, exception broadcast is queued
-				// first task below runs, queues second task
-				// exception broadcast runs
-				// second task runs, latch counts down
+				bus.broadcast(testEvent);
 				gExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
@@ -151,27 +202,25 @@ public class SimpleEventBusTest {
 		} catch(InterruptedException e) {
 			fail("interrupted");
 		}
-		assertTrue(mReceiverCalled > 0);
+		assertTrue(mReceivedCount == 1);
+		assertTrue(mExceptionReceivedCount == 1);
 	}
 
+	private volatile int mBroadcastCount;
+
+	/**
+	 * Broadcast does the right thing even when there are no receivers.
+	 */
 	@Test
-	public void badReceiverShouldBeRemoved() {
+	public void noReceivers() {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final String testEvent = "test";
 		gExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, null, false);
-				final EventReceiver<String> receiver = new EventReceiver<String>() {
-					@Override
-					public void onEvent(EventBus<String> bus, String event) {
-						++mReceiverCalled;
-						throw new RuntimeException();
-					}
-				};
-				bus.register(receiver);
-				bus.broadcast(testEvent);
-				bus.broadcast(testEvent);
+				final SimpleEventBus<String> bus = new SimpleEventBus<String>(gExecutor, null, EventFilters.<String>discardNull());
+				if(bus.broadcast(testEvent)) ++mBroadcastCount;
+				if(bus.broadcast(null)) ++mBroadcastCount;
 				gExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
@@ -185,7 +234,6 @@ public class SimpleEventBusTest {
 		} catch(InterruptedException e) {
 			fail("interrupted");
 		}
-		assertTrue(mReceiverCalled == 1);
+		assertTrue(mBroadcastCount == 1);
 	}
-
 }

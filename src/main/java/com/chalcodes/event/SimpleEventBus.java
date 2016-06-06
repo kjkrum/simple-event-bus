@@ -16,31 +16,43 @@ import java.util.concurrent.Executor;
  * @author Kevin Krumwiede
  */
 public class SimpleEventBus<T> implements EventBus<T> {
-	protected final Executor mExecutor;
-	private final EventBus<Exception> mExceptionBus;
-	private final boolean mNullAllowed;
+	@Nonnull protected final Executor mExecutor;
+	@Nullable private final EventBus<Exception> mExceptionBus;
+	@Nullable private final EventFilter<T> mEventFilter;
 	/** Copy-on-write. */
 	@Nonnull private volatile Set<EventReceiver<T>> mReceivers = new HashSet<EventReceiver<T>>();
 
 	/**
 	 * Creates a new event bus.  If an exception bus is provided, any
-	 * exception thrown by a receiver will be broadcast on it.
+	 * exception thrown by a receiver will be broadcast on it.  If an event
+	 * filter is provided, it will be applied to every event broadcast.
 	 *
-	 * @param executor     the broadcast executor
+	 * @param executor the broadcast executor
 	 * @param exceptionBus the exception bus; may be null
-	 * @param nullAllowed  true if this bus should allow null events;
-	 *                     otherwise false
+	 * @param eventFilter the event filter; may be null
 	 * @throws NullPointerException if executor is null
 	 */
-	public SimpleEventBus(@Nonnull final Executor executor, @Nullable final EventBus<Exception> exceptionBus,
-						  final boolean nullAllowed) {
+	public SimpleEventBus(@Nonnull final Executor executor,
+						  @Nullable final EventBus<Exception> exceptionBus,
+						  @Nullable EventFilter<T> eventFilter) {
 		// noinspection ConstantConditions
 		if(executor == null) {
 			throw new NullPointerException();
 		}
 		mExecutor = executor;
 		mExceptionBus = exceptionBus;
-		mNullAllowed = nullAllowed;
+		mEventFilter = eventFilter;
+	}
+
+	/**
+	 * Creates a new event bus with no event filter.
+	 *
+	 * @param executor the broadcast executor
+	 * @param exceptionBus the exception bus; may be null
+	 */
+	public SimpleEventBus(@Nonnull final Executor executor,
+						  @Nullable final EventBus<Exception> exceptionBus) {
+		this(executor, exceptionBus, null);
 	}
 
 	@Override
@@ -82,29 +94,25 @@ public class SimpleEventBus<T> implements EventBus<T> {
 		}
 	}
 
-	/**
-	 * Asynchronously broadcasts an event.
-	 *
-	 * @param event the event to broadcast
-	 * @throws NullPointerException if event is null and this bus does not
-	 *                              allow null events
-	 */
 	@Override
-	public void broadcast(@Nullable final T event) {
-		if(event == null && !mNullAllowed) {
-			throw new NullPointerException();
-		}
-		final Set<EventReceiver<T>> snapshot = mReceivers;
-		mExecutor.execute(new Runnable() {
-			final Iterator<EventReceiver<T>> iter = snapshot.iterator();
+	public boolean broadcast(@Nullable final T event) {
+		if(mEventFilter == null || mEventFilter.isAccepted(event)) {
+			final Set<EventReceiver<T>> receivers = mReceivers;
+			if(!receivers.isEmpty()) {
+				mExecutor.execute(new Runnable() {
+					final Iterator<EventReceiver<T>> iter = receivers.iterator();
 
-			@Override
-			public void run() {
-				while(iter.hasNext()) {
-					dispatch(iter.next(), event);
-				}
+					@Override
+					public void run() {
+						while(iter.hasNext()) {
+							dispatch(iter.next(), event);
+						}
+					}
+				});
 			}
-		});
+			return true;
+		}
+		return false;
 	}
 
 	/**

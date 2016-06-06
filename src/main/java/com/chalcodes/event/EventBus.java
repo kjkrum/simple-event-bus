@@ -33,12 +33,15 @@ public interface EventBus<T> {
 	/**
 	 * Broadcasts an event to receivers that are registered at the time this
 	 * method is called, excluding any that are unregistered before the
-	 * dispatch occurs.  May throw {@link NullPointerException} if {@code
-	 * event} is null and the implementation does not allow null events.
+	 * dispatch occurs.  Returns {@code true} if the event was accepted, even
+	 * if broadcast did not actually occur because there were no registered
+	 * listeners.  Propagates any {@link RuntimeException} thrown by an
+	 * {@link EventFilter}.
 	 *
 	 * @param event the event to broadcast
+	 * @return true if the event was broadcast; otherwise false
 	 */
-	void broadcast(@Nullable T event);
+	boolean broadcast(@Nullable T event);
 
 	/**
 	 * Gets the bus on which this bus broadcasts exceptions thrown by its
