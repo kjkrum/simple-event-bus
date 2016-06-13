@@ -1,5 +1,9 @@
-package com.chalcodes.event;
+package com.chalcodes.event.test;
 
+import com.chalcodes.event.EventBus;
+import com.chalcodes.event.EventReceiver;
+import com.chalcodes.event.SimpleEventBus;
+import com.chalcodes.event.StickyEventBus;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
