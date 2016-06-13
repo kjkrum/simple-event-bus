@@ -1,5 +1,6 @@
 package com.chalcodes.event;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,24 +11,37 @@ import java.util.Map;
  */
 public class ClassBusFactory {
 	private final Map<Class<?>, EventBus<?>> mBuses = new HashMap<Class<?>, EventBus<?>>();
-	private final BusFactory mFactory;
+	private final BusFactory<?> mFactory;
 
-	public ClassBusFactory(final BusFactory factory) {
+	public ClassBusFactory(@Nonnull final BusFactory<?> factory) {
+		// noinspection ConstantConditions
 		if(factory == null) {
 			throw new NullPointerException();
 		}
 		mFactory = factory;
 	}
 
+	/**
+	 * Gets or creates an event bus parameterized for the specified type.
+	 * Always returns the same instance for the same argument.
+	 *
+	 * @param klass the class of the event type
+	 * @param <T> the event type
+	 * @return the event bus
+	 */
 	@SuppressWarnings("unchecked")
-	public <T> EventBus<T> getBus(Class<T> klass) {
+	public <T> EventBus<T> getBus(@Nonnull final Class<T> klass) {
+		// noinspection ConstantConditions
+		if(klass == null) {
+			throw new NullPointerException();
+		}
 		synchronized(mBuses) {
 			if(mBuses.containsKey(klass)) {
 				return (EventBus<T>) mBuses.get(klass);
 			} else {
-				final EventBus<T> bus = mFactory.newBus();
+				final EventBus<?> bus = mFactory.newBus();
 				mBuses.put(klass, bus);
-				return bus;
+				return (EventBus<T>) bus;
 			}
 		}
 	}
