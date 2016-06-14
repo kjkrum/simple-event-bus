@@ -29,7 +29,6 @@ public class ClassBusFactory {
 	 * @param <T> the event type
 	 * @return the event bus
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> EventBus<T> getBus(@Nonnull final Class<T> klass) {
 		// noinspection ConstantConditions
 		if(klass == null) {
@@ -37,10 +36,12 @@ public class ClassBusFactory {
 		}
 		synchronized(mBuses) {
 			if(mBuses.containsKey(klass)) {
+				//noinspection unchecked
 				return (EventBus<T>) mBuses.get(klass);
 			} else {
 				final EventBus<?> bus = mFactory.newBus();
 				mBuses.put(klass, bus);
+				//noinspection unchecked
 				return (EventBus<T>) bus;
 			}
 		}
