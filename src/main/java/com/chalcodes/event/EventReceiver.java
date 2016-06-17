@@ -10,10 +10,10 @@ import javax.annotation.Nonnull;
  */
 public interface EventReceiver<T> {
 	/**
-	 * Called when an event is broadcast.  This method should return quickly.
+	 * Receives an event.  This method should return quickly.
 	 *
 	 * @param bus   the source of the event
-	 * @param event the event; may be null
+	 * @param event the event
 	 */
-	void onEvent(@Nonnull EventBus<T> bus, T event);
+	void onEvent(@Nonnull EventBus<T> bus, @Nonnull T event);
 }

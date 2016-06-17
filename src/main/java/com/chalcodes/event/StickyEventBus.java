@@ -5,40 +5,37 @@ import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
- * An event bus that holds a strong reference to the last event broadcast.
- * The sticky event will be dispatched to any subsequently registered
- * receiver.
+ * An event bus that dispatches the last event broadcast to any subsequently
+ * registered receiver.
  *
  * @param <T> the event type
  * @author Kevin Krumwiede
  */
-public class StickyEventBus<T> extends SimpleEventBus<T> {
-	private final Object mLock = new Object();
-	private boolean mHasSticky;
-	private T mStickyEvent;
+public final class StickyEventBus<T> extends AbstractBusWrapper<T> {
+	@Nullable private T mStickyEvent;
 
 	public StickyEventBus(@Nonnull final Executor executor,
-						   @Nullable final EventBus<Exception> exceptionBus,
-						   @Nullable final EventFilter<T> eventFilter) {
-		super(executor, exceptionBus, eventFilter);
+						  @Nullable final EventBus<Exception> exceptionBus,
+						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
+		super(new SimpleEventBus<T>(executor, exceptionBus, receiverSetFactory));
 	}
 
 	public StickyEventBus(@Nonnull final Executor executor,
-						   @Nullable final EventBus<Exception> exceptionBus) {
-		this(executor, exceptionBus, null);
+						  @Nullable final EventBus<Exception> exceptionBus) {
+		this(executor, exceptionBus, ReceiverSetFactories.<T>hashSetFactory());
 	}
 
 	@Override
 	public boolean register(@Nonnull final EventReceiver<T> receiver) {
-		synchronized(mLock) {
-			final boolean added = super.register(receiver);
-			if(added && mHasSticky) {
-				mExecutor.execute(new Runnable() {
-					final T sticky = mStickyEvent;
-
+		synchronized(mBus) {
+			final boolean added = mBus.register(receiver);
+			if(added && mStickyEvent != null) {
+				final T event = mStickyEvent;
+				final SimpleEventBus<T> bus = (SimpleEventBus<T>) mBus;
+				bus.mExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
-						dispatch(receiver, sticky);
+						bus.dispatch(receiver, event);
 					}
 				});
 			}
@@ -47,36 +44,20 @@ public class StickyEventBus<T> extends SimpleEventBus<T> {
 	}
 
 	@Override
-	public boolean broadcast(@Nullable T event) {
-		synchronized(mLock) {
-			if(super.broadcast(event)) {
-				mHasSticky = true;
-				mStickyEvent = event;
-				return true;
-			}
-			return false;
+	public void broadcast(@Nonnull T event) {
+		synchronized(mBus) {
+			mBus.broadcast(event);
+			mStickyEvent = event;
 		}
 	}
 
 	/**
-	 * Tests whether this bus has a sticky event.
-	 *
-	 * @return true if this bus has a sticky event; otherwise false
-	 */
-	public boolean hasSticky() {
-		synchronized(mLock) {
-			return mHasSticky;
-		}
-	}
-
-	/**
-	 * Gets the sticky event.  Only meaningful if {@link #hasSticky()} returns
-	 * true.
+	 * Gets the sticky event.  Returns null if there is no sticky event.
 	 *
 	 * @return the sticky event, or null
 	 */
-	public T getSticky() {
-		synchronized(mLock) {
+	@Nullable public T getSticky() {
+		synchronized(mBus) {
 			return mStickyEvent;
 		}
 	}
@@ -85,8 +66,7 @@ public class StickyEventBus<T> extends SimpleEventBus<T> {
 	 * Clears the sticky event.
 	 */
 	public void clearSticky() {
-		synchronized(mLock) {
-			mHasSticky = false;
+		synchronized(mBus) {
 			mStickyEvent = null;
 		}
 	}

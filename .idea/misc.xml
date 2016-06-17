@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <entry_points version="2.0" />
+    <entry_points version="2.0">
+      <entry_point TYPE="class" FQNAME="com.chalcodes.event.BusFactory" />
+      <entry_point TYPE="method" FQNAME="com.chalcodes.event.StickyEventBus void clearSticky()" />
+      <entry_point TYPE="method" FQNAME="com.chalcodes.event.StickyEventBus boolean hasSticky()" />
+      <entry_point TYPE="method" FQNAME="com.chalcodes.event.EventFilters com.chalcodes.event.EventFilter&lt;T&gt; throwNull()" />
+      <entry_point TYPE="method" FQNAME="com.chalcodes.event.EventBus com.chalcodes.event.EventBus&lt;java.lang.Exception&gt; getExceptionBus()" />
+      <entry_point TYPE="method" FQNAME="com.chalcodes.event.ClassBusFactory ClassBusFactory(com.chalcodes.event.BusFactory&lt;?&gt; factory)" />
+      <entry_point TYPE="method" FQNAME="com.chalcodes.event.ClassBusFactory com.chalcodes.event.EventBus&lt;T&gt; getBus(java.lang.Class&lt;T&gt; klass)" />
+    </entry_points>
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
@@ -11,7 +19,7 @@
     </option>
   </component>
   <component name="NullableNotNullManager">
-    <option name="myDefaultNullable" value="org.jetbrains.annotations.Nullable" />
+    <option name="myDefaultNullable" value="javax.annotation.Nullable" />
     <option name="myDefaultNotNull" value="javax.annotation.Nonnull" />
     <option name="myNullables">
       <value>

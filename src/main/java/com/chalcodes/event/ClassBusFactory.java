@@ -22,8 +22,8 @@ public class ClassBusFactory {
 	}
 
 	/**
-	 * Gets or creates an event bus parameterized for the specified type.
-	 * Always returns the same instance for the same argument.
+	 * Gets or creates a bus for events of the specified class.  Always
+	 * returns the same instance for the same argument.
 	 *
 	 * @param klass the class of the event type
 	 * @param <T> the event type

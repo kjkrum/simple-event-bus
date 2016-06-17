@@ -5,18 +5,18 @@ import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
- * Creates instances of {@link SimpleEventBus}.
+ * Creates instances of {@link StickyEventBus}.
  *
  * @author Kevin Krumwiede
  */
-public class SimpleBusFactory<T> extends AbstractBusFactory<T> {
-	public SimpleBusFactory(@Nonnull final Executor executor,
+public class StickyBusFactory<T> extends AbstractBusFactory<T> {
+	public StickyBusFactory(@Nonnull final Executor executor,
 							@Nullable final EventBus<Exception> exceptionBus,
 							@Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
 		super(executor, exceptionBus, receiverSetFactory);
 	}
 
-	public SimpleBusFactory(@Nonnull final Executor executor,
+	public StickyBusFactory(@Nonnull final Executor executor,
 							@Nullable final EventBus<Exception> exceptionBus) {
 		this(executor, exceptionBus, ReceiverSetFactories.<T>hashSetFactory());
 	}
@@ -24,6 +24,6 @@ public class SimpleBusFactory<T> extends AbstractBusFactory<T> {
 	@Nonnull
 	@Override
 	public EventBus<T> newBus() {
-		return new SimpleEventBus<T>(mExecutor, mExceptionBus, mReceiverSetFactory);
+		return new StickyEventBus<T>(mExecutor, mExceptionBus, mReceiverSetFactory);
 	}
 }
