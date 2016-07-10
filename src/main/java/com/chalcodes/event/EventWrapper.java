@@ -18,7 +18,7 @@ public class EventWrapper<T> {
 		mEvent = event;
 	}
 
-	public T unwrap() {
+	@Nullable public T unwrap() {
 		return mEvent;
 	}
 

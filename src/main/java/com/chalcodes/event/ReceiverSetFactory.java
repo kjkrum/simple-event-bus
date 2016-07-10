@@ -16,5 +16,5 @@ public interface ReceiverSetFactory<T> {
 	 * @param current the current receivers
 	 * @return a new set containing the elements of current
 	 */
-	Set<EventReceiver<T>> newSet(@Nonnull Set<EventReceiver<T>> current);
+	@Nonnull Set<EventReceiver<T>> newSet(@Nonnull Set<EventReceiver<T>> current);
 }
