@@ -32,7 +32,7 @@ public final class StickyEventBus<T> extends SimpleEventBus<T> {
 			final boolean added = super.register(receiver);
 			if(added && mStickyEvent != null) {
 				final T event = mStickyEvent;
-				mExecutor.execute(new Runnable() {
+				exec(new Runnable() {
 					@Override
 					public void run() {
 						dispatch(receiver, event);
@@ -46,10 +46,8 @@ public final class StickyEventBus<T> extends SimpleEventBus<T> {
 	@Override
 	public void broadcast(@Nonnull T event) {
 		synchronized(mLock) {
-			if(!event.equals(mStickyEvent)) {
-				super.broadcast(event);
-				mStickyEvent = event;
-			}
+			super.broadcast(event);
+			mStickyEvent = event;
 		}
 	}
 

@@ -10,12 +10,17 @@ import java.util.concurrent.Executor;
  * An event bus that dispatches events using a single-threaded {@link
  * Executor}.  Receivers should be registered and unregistered only in the
  * executor thread.
+ * <p>
+ * This class is open to extension, but should be extended with caution.
+ * In particular, note that {@link #broadcast(Object)} calls {@link
+ * #dispatch(EventReceiver, Object)}, which may in turn call {@link
+ * #unregister(EventReceiver)}.
  *
  * @param <T> the event type
  * @author Kevin Krumwiede
  */
 public class SimpleEventBus<T> implements EventBus<T> {
-	@Nonnull final Executor mExecutor;
+	@Nonnull private final Executor mExecutor;
 	@Nullable private final EventBus<Exception> mExceptionBus;
 	@Nonnull private final ReceiverSetFactory<T> mReceiverSetFactory;
 	/**
@@ -101,7 +106,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	}
 
 	/* Why not copy mReceivers and dispatch to copy.retainAll(mReceivers)?
-	 * This is not exactly the same as testing mReceivers.contains(...)
+	 * This would not be exactly the same as testing mReceivers.contains(...)
 	 * for each receiver.  The difference is in what would happen if one
 	 * receiver unregistered another receiver that is in the retained set
 	 * but which has not yet been called.  The unregistered receiver would
@@ -133,7 +138,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	 * @param receiver the receiver
 	 * @param event the event to dispatch
 	 */
-	void dispatch(@Nonnull final EventReceiver<T> receiver, @Nonnull final T event) {
+	protected void dispatch(@Nonnull final EventReceiver<T> receiver, @Nonnull final T event) {
 		if(mReceivers.contains(receiver)) {
 			try {
 				receiver.onEvent(this, event);
@@ -150,4 +155,14 @@ public class SimpleEventBus<T> implements EventBus<T> {
 			mExceptionBus.broadcast(exception);
 		}
 	}
+
+	/**
+	 * Executes a task on this bus's {@link Executor}.
+	 *
+	 * @param command the task to execute
+	 */
+	protected void exec(@Nonnull final Runnable command) {
+		mExecutor.execute(command);
+	}
+
 }
