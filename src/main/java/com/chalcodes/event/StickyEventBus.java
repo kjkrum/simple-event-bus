@@ -11,13 +11,14 @@ import java.util.concurrent.Executor;
  * @param <T> the event type
  * @author Kevin Krumwiede
  */
-public final class StickyEventBus<T> extends AbstractBusWrapper<T> {
+public final class StickyEventBus<T> extends SimpleEventBus<T> {
+	private final Object mLock = new Object();
 	@Nullable private T mStickyEvent;
 
 	public StickyEventBus(@Nonnull final Executor executor,
 						  @Nullable final EventBus<Exception> exceptionBus,
 						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		super(new SimpleEventBus<T>(executor, exceptionBus, receiverSetFactory));
+		super(executor, exceptionBus, receiverSetFactory);
 	}
 
 	public StickyEventBus(@Nonnull final Executor executor,
@@ -27,15 +28,14 @@ public final class StickyEventBus<T> extends AbstractBusWrapper<T> {
 
 	@Override
 	public boolean register(@Nonnull final EventReceiver<T> receiver) {
-		synchronized(mBus) {
-			final boolean added = mBus.register(receiver);
+		synchronized(mLock) {
+			final boolean added = super.register(receiver);
 			if(added && mStickyEvent != null) {
 				final T event = mStickyEvent;
-				final SimpleEventBus<T> bus = (SimpleEventBus<T>) mBus;
-				bus.mExecutor.execute(new Runnable() {
+				mExecutor.execute(new Runnable() {
 					@Override
 					public void run() {
-						bus.dispatch(receiver, event);
+						dispatch(receiver, event);
 					}
 				});
 			}
@@ -45,9 +45,11 @@ public final class StickyEventBus<T> extends AbstractBusWrapper<T> {
 
 	@Override
 	public void broadcast(@Nonnull T event) {
-		synchronized(mBus) {
-			mBus.broadcast(event);
-			mStickyEvent = event;
+		synchronized(mLock) {
+			if(!event.equals(mStickyEvent)) {
+				super.broadcast(event);
+				mStickyEvent = event;
+			}
 		}
 	}
 
@@ -57,7 +59,7 @@ public final class StickyEventBus<T> extends AbstractBusWrapper<T> {
 	 * @return the sticky event, or null
 	 */
 	@Nullable public T getSticky() {
-		synchronized(mBus) {
+		synchronized(mLock) {
 			return mStickyEvent;
 		}
 	}
@@ -66,7 +68,7 @@ public final class StickyEventBus<T> extends AbstractBusWrapper<T> {
 	 * Clears the sticky event.
 	 */
 	public void clearSticky() {
-		synchronized(mBus) {
+		synchronized(mLock) {
 			mStickyEvent = null;
 		}
 	}
