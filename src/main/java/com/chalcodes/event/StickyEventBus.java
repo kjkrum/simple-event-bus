@@ -16,14 +16,14 @@ public final class StickyEventBus<T> extends SimpleEventBus<T> {
 	@Nullable private T mStickyEvent;
 
 	public StickyEventBus(@Nonnull final Executor executor,
-						  @Nullable final EventBus<Exception> exceptionBus,
+						  @Nullable final EventPipeline<Exception> exceptionPipeline,
 						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		super(executor, exceptionBus, receiverSetFactory);
+		super(executor, exceptionPipeline, receiverSetFactory);
 	}
 
 	public StickyEventBus(@Nonnull final Executor executor,
-						  @Nullable final EventBus<Exception> exceptionBus) {
-		this(executor, exceptionBus, ReceiverSetFactories.<T>hashSetFactory());
+						  @Nullable final EventPipeline<Exception> exceptionPipeline) {
+		this(executor, exceptionPipeline, ReceiverSetFactories.<T>hashSetFactory());
 	}
 
 	@Override

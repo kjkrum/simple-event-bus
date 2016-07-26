@@ -3,13 +3,12 @@ package com.chalcodes.event;
 import javax.annotation.Nonnull;
 
 /**
- * A type-safe event bus.  Only {@link #broadcast(Object) broadcast} is
- * required to be thread-safe.
+ * A type-safe event bus.
  *
  * @param <T> the event type
  * @author Kevin Krumwiede
  */
-public interface EventBus<T> {
+public interface EventBus<T> extends EventPipeline<T> {
 	/**
 	 * Registers a receiver.
 	 *
@@ -30,10 +29,11 @@ public interface EventBus<T> {
 	/**
 	 * Broadcasts an event to receivers that are registered at the time this
 	 * method is called, excluding any that are unregistered before the
-	 * dispatch occurs.
+	 * dispatch occurs.  Implementations should be thread-safe.
 	 *
 	 * @param event the event to broadcast
 	 */
+	@Override
 	void broadcast(@Nonnull T event);
 
 	/**

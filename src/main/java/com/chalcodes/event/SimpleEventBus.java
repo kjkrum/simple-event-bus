@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
  */
 public class SimpleEventBus<T> implements EventBus<T> {
 	@Nonnull private final Executor mExecutor;
-	@Nullable private final EventBus<Exception> mExceptionBus;
+	@Nullable private final EventPipeline<Exception> mExceptionPipeline;
 	@Nonnull private final ReceiverSetFactory<T> mReceiverSetFactory;
 	/**
 	 * Copy-on-write collection of receivers.  The collection must never be
@@ -30,7 +30,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	@Nonnull private volatile Set<EventReceiver<T>> mReceivers = Collections.emptySet();
 
 	/**
-	 * Creates a new event bus.  If an exception bus is provided, any
+	 * Creates a new event bus.  If an exception pipeline is provided, any
 	 * exception thrown by a receiver will be broadcast on it.  The order in
 	 * which receivers are called is determined by the iteration order of the
 	 * sets produced by the receiver set factory.
@@ -41,34 +41,34 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	 * the event bus may be compromised, leading to unspecified behavior.
 	 *
 	 * @param executor the broadcast executor
-	 * @param exceptionBus the exception bus; may be null
+	 * @param exceptionPipeline the exception pipeline; may be null
 	 * @param receiverSetFactory the receiver set factory
 	 * @throws NullPointerException if executor or receiverSetFactory is null
 	 * @see ReceiverSetFactories
 	 */
 	public SimpleEventBus(@Nonnull final Executor executor,
-						  @Nullable final EventBus<Exception> exceptionBus,
+						  @Nullable final EventPipeline<Exception> exceptionPipeline,
 						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
 		// noinspection ConstantConditions
 		if(executor == null || receiverSetFactory == null) {
 			throw new NullPointerException();
 		}
 		mExecutor = executor;
-		mExceptionBus = exceptionBus;
+		mExceptionPipeline = exceptionPipeline;
 		mReceiverSetFactory = receiverSetFactory;
 	}
 
 	/**
-	 * Creates a new event bus.  If an exception bus is provided, any
+	 * Creates a new event bus.  If an exception pipeline is provided, any
 	 * exception thrown by a receiver will be broadcast on it.
 	 *
 	 * @param executor the broadcast executor
-	 * @param exceptionBus the exception bus; may be null
+	 * @param exceptionPipeline the exception pipeline; may be null
 	 * @throws NullPointerException if executor is null
 	 */
 	public SimpleEventBus(@Nonnull final Executor executor,
-						  @Nullable final EventBus<Exception> exceptionBus) {
-		this(executor, exceptionBus, ReceiverSetFactories.<T>hashSetFactory());
+						  @Nullable final EventPipeline<Exception> exceptionPipeline) {
+		this(executor, exceptionPipeline, ReceiverSetFactories.<T>hashSetFactory());
 	}
 
 	@Override
@@ -151,8 +151,8 @@ public class SimpleEventBus<T> implements EventBus<T> {
 
 	@Override
 	public void report(@Nonnull final Exception exception) {
-		if(mExceptionBus != null) {
-			mExceptionBus.broadcast(exception);
+		if(mExceptionPipeline != null) {
+			mExceptionPipeline.broadcast(exception);
 		}
 	}
 

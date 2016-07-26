@@ -11,28 +11,27 @@ public class EventFilters {
 	private EventFilters() { /* Non-instantiable. */ }
 
 	/**
-	 * Wraps an {@link EventBus} in a proxy that tests each event with an
-	 * {@link EventFilter} before broadcast.  If events are broadcast from
-	 * more than one thread, the filter must be thread-safe.  Events for which
-	 * {@link EventFilter#accepts(Object) accepts} returns false are silently
-	 * discarded.  If {@code accepts} throws an exception, it propagates from
-	 * {@link EventBus#broadcast(Object) broadcast}.
+	 * Wraps an event pipeline in a proxy that tests each event with an
+	 * {@link EventFilter}.  Events for which {@link
+	 * EventFilter#accepts(Object) accepts} returns false are silently
+	 * discarded.  The returned pipeline is thread safe if and only if the
+	 * filter and the downstream pipeline are thread safe.
 	 *
-	 * @param bus the event bus to wrap
+	 * @param pipeline the event pipeline to filter
 	 * @param filter the filter to apply
 	 * @param <T> the event type
 	 * @return the wrapper
 	 */
-	public static <T> EventBus<T> filterBus(@Nonnull final EventBus<T> bus, @Nonnull final EventFilter<T> filter) {
+	public static <T> EventPipeline<T> filter(@Nonnull final EventPipeline<T> pipeline, @Nonnull final EventFilter<T> filter) {
 		//noinspection ConstantConditions
 		if(filter == null) {
 			throw new NullPointerException();
 		}
-		return new AbstractBusWrapper<T>(bus) {
+		return new EventPipeline<T>() {
 			@Override
 			public void broadcast(@Nonnull final T event) {
 				if(filter.accepts(event)) {
-					bus.broadcast(event);
+					pipeline.broadcast(event);
 				}
 			}
 		};
@@ -40,8 +39,9 @@ public class EventFilters {
 
 	/**
 	 * Combines two or more event filters.  Filters are tested in the order
-	 * provided.  If an event does not match one of the filters, it is not
-	 * tested by the remaining filters.
+	 * provided.  If an event does not match one of the filters, it will not
+	 * be tested by the remaining filters.  The combined filter is thread safe
+	 * if and only if all its constituent filters are thread safe.
 	 *
 	 * @param first the first event filter
 	 * @param second the second event filter
