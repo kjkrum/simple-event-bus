@@ -6,8 +6,8 @@ import javax.annotation.Nullable;
  * Wrapper to facilitate the publication of null events.  If null is a
  * meaningful event value, an {@code EventBus<T>} may be changed to an {@code
  * EventBus<EventWrapper<T>>}.  However, this requires the creation of an
- * additional object for every event.  Whenever possible, it is preferable to
- * declare a non-null constant to represent null.
+ * additional wrapper object for every event.  Whenever possible, it is
+ * preferable to declare a non-null constant to represent empty events.
  *
  * @author Kevin Krumwiede
  */
