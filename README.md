@@ -1,16 +1,18 @@
 # simple-event-bus
-A type-safe event publication API designed for Android, Swing, and other Java frameworks.  Key classes include the `EventBus` interface and its two concrete implementations, `SimpleEventBus` and `StickyEventBus`. The entire API consists of around five interfaces and ten small, composable classes. The author is using `simple-event-bus` in a non-trivial Android project, and will declare the API stable after using it in at least one other project.
+A type-safe event publication API designed for Android, Swing, and other Java frameworks.  Key classes include the `EventBus` interface and its concrete implementations, `SimpleEventBus` and `StickyEventBus`. The entire API consists of around five interfaces and ten small, composable classes.
+ 
+ As suggested by the 0.x version number, this library is in development and the API is subject to change.  The author has used `simple-event-bus` in a few Android projects, and plans to declare version 1.0 after using it in at least one non-Android project, hopefully by the end of 2016.
 
 ## `SimpleEventBus`
 * Events may be broadcast from any thread.
 * Events are dispatched by a single-threaded `Executor`.  The executor may simply delegate to the framework's main thread.
 * **Event receivers should be registered and unregistered only in the executor thread.**
 * Receivers are stored in sets, not lists.
-* The order in which receivers are called may be controlled by constructing the event bus with a receiver set factory.
+* The order in which receivers are called is controlled by a receiver set factory.
 * Events are delivered to receivers that were registered when the event was broadcast, and which are still registered when the event is delivered.
-* Each event bus may have an exception bus on which it broadcasts runtime exceptions thrown by its receivers.
+* Each event bus may have an exception pipeline on which it broadcasts runtime exceptions thrown by its receivers.
 * A receiver that throws an exception is immediately unregistered.
-* Any number of buses can share the same executor, exception bus, and receiver set factory.
+* Any number of buses can share the same executor, exception pipeline, and receiver set factory.
 
 ## `StickyEventBus`
 All of the above, plus:
