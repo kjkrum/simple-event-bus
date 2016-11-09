@@ -1,11 +1,12 @@
 package com.chalcodes.event;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A factory for per-class event buses.  This class is thread-safe.
+ * Maps classes to event buses.  This class is thread-safe.
  *
  * @author Kevin Krumwiede
  */
@@ -13,12 +14,39 @@ public class ClassBusFactory {
 	private final Map<Class<?>, EventBus<?>> mBuses = new HashMap<Class<?>, EventBus<?>>();
 	private final BusFactory<?> mFactory;
 
-	public ClassBusFactory(@Nonnull final BusFactory<?> factory) {
+	/**
+	 * Creates a class bus factory with initial mappings.  Other requested
+	 * buses are created by the bus factory.
+	 *
+	 * @param factory the bus factory
+	 * @param buses the initial mappings
+	 * @throws NullPointerException if factory is null or any key or value in
+	 * buses is null
+	 */
+	public ClassBusFactory(@Nonnull final BusFactory<?> factory,
+	                       @Nullable final Map<Class<?>, EventBus<?>> buses) {
 		// noinspection ConstantConditions
 		if(factory == null) {
 			throw new NullPointerException();
 		}
 		mFactory = factory;
+		if(buses != null) {
+			mBuses.putAll(buses);
+			if(mBuses.containsKey(null) || mBuses.containsValue(null)) {
+				throw new NullPointerException();
+			}
+		}
+	}
+
+	/**
+	 * Creates a class bus factory with no initial mappings.  All requested
+	 * buses are created by the bus factory.
+	 *
+	 * @param factory the bus factory
+	 * @see #ClassBusFactory(BusFactory, Map)
+	 */
+	public ClassBusFactory(@Nonnull final BusFactory<?> factory) {
+		this(factory, null);
 	}
 
 	/**
