@@ -31,6 +31,6 @@ public class StickyBusFactory<T> extends AbstractBusFactory<T> {
 	@Nonnull
 	@Override
 	public EventBus<T> newBus() {
-		return new StickyEventBus<T>(mExecutor, mExceptionBus, mReceiverSetFactory);
+		return new StickyEventBus<T>(mExecutor, mExceptionBus, mReceiverSetFactory, mUncaughtExceptionHandler);
 	}
 }
