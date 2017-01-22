@@ -12,8 +12,15 @@ import java.util.concurrent.Executor;
 public class SimpleBusFactory<T> extends AbstractBusFactory<T> {
 	public SimpleBusFactory(@Nonnull final Executor executor,
 							@Nullable final EventBus<Exception> exceptionBus,
-							@Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		super(executor, exceptionBus, receiverSetFactory);
+							@Nonnull final ReceiverSetFactory<T> receiverSetFactory,
+							@Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
+		super(executor, exceptionBus, receiverSetFactory, uncaughtExceptionHandler);
+	}
+
+	public SimpleBusFactory(@Nonnull final Executor executor,
+	                        @Nullable final EventBus<Exception> exceptionBus,
+	                        @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
+		this(executor, exceptionBus, receiverSetFactory, UncaughtExceptionHandlers.<T>unregisterAndReport());
 	}
 
 	public SimpleBusFactory(@Nonnull final Executor executor,

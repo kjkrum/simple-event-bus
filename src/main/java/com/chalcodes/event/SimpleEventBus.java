@@ -23,6 +23,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	@Nonnull private final Executor mExecutor;
 	@Nullable private final EventPipeline<Exception> mExceptionPipeline;
 	@Nonnull private final ReceiverSetFactory<T> mReceiverSetFactory;
+	@Nonnull private final UncaughtExceptionHandler<T> mUncaughtExceptionHandler;
 	/**
 	 * Copy-on-write collection of receivers.  The collection must never be
 	 * modified via this reference.
@@ -43,19 +44,46 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	 * @param executor the broadcast executor
 	 * @param exceptionPipeline the exception pipeline; may be null
 	 * @param receiverSetFactory the receiver set factory
-	 * @throws NullPointerException if executor or receiverSetFactory is null
+	 * @param uncaughtExceptionHandler the uncaught exception handler
+	 * @throws NullPointerException if executor, receiverSetFactory, or
+	 * uncaughtExceptionHandler is null
 	 * @see ReceiverSetFactories
 	 */
 	public SimpleEventBus(@Nonnull final Executor executor,
 						  @Nullable final EventPipeline<Exception> exceptionPipeline,
-						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		// noinspection ConstantConditions
-		if(executor == null || receiverSetFactory == null) {
+						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
+	                      @Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
+		//noinspection ConstantConditions - public API
+		if(executor == null || receiverSetFactory == null || uncaughtExceptionHandler == null) {
 			throw new NullPointerException();
 		}
 		mExecutor = executor;
 		mExceptionPipeline = exceptionPipeline;
 		mReceiverSetFactory = receiverSetFactory;
+		mUncaughtExceptionHandler = uncaughtExceptionHandler;
+	}
+
+	/**
+	 * Creates a new event bus.  If an exception pipeline is provided, any
+	 * exception thrown by a receiver will be broadcast on it.  The order in
+	 * which receivers are called is determined by the iteration order of the
+	 * sets produced by the receiver set factory.
+	 * <p>
+	 * Use custom receiver set factories with caution.  If the factory
+	 * produces sets that violate the contract of {@link Set}, or leaks the
+	 * receiver sets to other parts of the application, the internal state of
+	 * the event bus may be compromised, leading to unspecified behavior.
+	 *
+	 * @param executor the broadcast executor
+	 * @param exceptionPipeline the exception pipeline; may be null
+	 * @param receiverSetFactory the receiver set factory
+	 * @throws NullPointerException if executor or receiverSetFactory is null
+	 * @see ReceiverSetFactories
+	 */
+	public SimpleEventBus(@Nonnull final Executor executor,
+	                      @Nullable final EventPipeline<Exception> exceptionPipeline,
+	                      @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
+		this(executor, exceptionPipeline, receiverSetFactory, UncaughtExceptionHandlers.<T>unregisterAndReport());
 	}
 
 	/**
@@ -73,7 +101,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 
 	@Override
 	public boolean register(@Nonnull final EventReceiver<T> receiver) {
-		// noinspection ConstantConditions
+		//noinspection ConstantConditions - public API
 		if(receiver == null) {
 			throw new NullPointerException();
 		}
@@ -132,8 +160,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 	}
 
 	/**
-	 * Dispatches an event only if the receiver is registered.  Unregisters
-	 * the receiver if it throws an exception.
+	 * Dispatches an event only if the receiver is registered.
 	 *
 	 * @param receiver the receiver
 	 * @param event the event to dispatch
@@ -143,8 +170,7 @@ public class SimpleEventBus<T> implements EventBus<T> {
 			try {
 				receiver.onEvent(this, event);
 			} catch(RuntimeException e) {
-				unregister(receiver);
-				report(e);
+				mUncaughtExceptionHandler.handle(this, receiver, e);
 			}
 		}
 	}

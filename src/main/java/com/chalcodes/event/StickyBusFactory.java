@@ -11,9 +11,16 @@ import java.util.concurrent.Executor;
  */
 public class StickyBusFactory<T> extends AbstractBusFactory<T> {
 	public StickyBusFactory(@Nonnull final Executor executor,
+	                        @Nullable final EventBus<Exception> exceptionBus,
+	                        @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
+	                        @Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
+		super(executor, exceptionBus, receiverSetFactory, uncaughtExceptionHandler);
+	}
+
+	public StickyBusFactory(@Nonnull final Executor executor,
 							@Nullable final EventBus<Exception> exceptionBus,
 							@Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		super(executor, exceptionBus, receiverSetFactory);
+		this(executor, exceptionBus, receiverSetFactory, UncaughtExceptionHandlers.<T>unregisterAndReport());
 	}
 
 	public StickyBusFactory(@Nonnull final Executor executor,
