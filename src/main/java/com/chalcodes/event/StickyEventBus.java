@@ -7,14 +7,15 @@ import java.util.concurrent.Executor;
 
 /**
  * An event bus that dispatches the last event broadcast to any subsequently
- * registered receiver.
+ * registered receiver.  Receivers must be registered and unregistered only in
+ * the executor thread.
  *
  * @param <T> the event type
  * @author Kevin Krumwiede
  */
 public final class StickyEventBus<T> extends AbstractEventBus<T> {
 	private final Object mLock = new Object();
-	@Nullable private T mStickyEvent;
+	@Nullable private T mEvent;
 
 	/**
 	 * Creates an event bus.  The order in which receivers are called is
@@ -55,8 +56,8 @@ public final class StickyEventBus<T> extends AbstractEventBus<T> {
 	public boolean register(@Nonnull final EventReceiver<T> receiver) {
 		synchronized(mLock) {
 			final boolean added = super.register(receiver);
-			if(added && mStickyEvent != null) {
-				final T event = mStickyEvent;
+			if(added && mEvent != null) {
+				final T event = mEvent;
 				exec(new Runnable() {
 					@Override
 					public void run() {
@@ -72,27 +73,28 @@ public final class StickyEventBus<T> extends AbstractEventBus<T> {
 	public void broadcast(@Nonnull T event) {
 		synchronized(mLock) {
 			super.broadcast(event);
-			mStickyEvent = event;
+			mEvent = event;
 		}
 	}
 
 	/**
-	 * Gets the sticky event.  Returns null if there is no sticky event.
+	 * Gets the stuck event.  Returns {@code null} if there is no stuck event.
 	 *
-	 * @return the sticky event, or null
+	 * @return the stuck event, or null
 	 */
-	@Nullable public T getSticky() {
+	@Nullable public T getEvent() {
 		synchronized(mLock) {
-			return mStickyEvent;
+			return mEvent;
 		}
 	}
 
 	/**
-	 * Clears the sticky event.
+	 * Sets the stuck event without broadcasting it.  The stuck event may be
+	 * cleared by setting it to {@code null}.
 	 */
-	public void clearSticky() {
+	public void setEvent(@Nullable final T event) {
 		synchronized(mLock) {
-			mStickyEvent = null;
+			mEvent = event;
 		}
 	}
 }
