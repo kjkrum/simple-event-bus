@@ -3,56 +3,77 @@ package com.chalcodes.event;
 import javax.annotation.Nonnull;
 
 /**
- * TODO javadoc
+ * Factory methods for common implementations of {@link
+ * UncaughtExceptionHandler}.
  *
  * @author Kevin Krumwiede
  */
 public class UncaughtExceptionHandlers {
 	private UncaughtExceptionHandlers() {}
 
-	private static final UncaughtExceptionHandler UNREGISTER_AND_REPORT =
-			new UncaughtExceptionHandler() {
-				@Override
-				public void handle(@Nonnull final EventBus bus,
-				                   @Nonnull final EventReceiver receiver,
-				                   @Nonnull final Exception exception) {
-					//noinspection unchecked
-					bus.unregister(receiver);
-					bus.report(exception);
-				}
-			};
+	private static final UncaughtExceptionHandler RETHROW = new UncaughtExceptionHandler() {
+		@Override
+		public void handle(@Nonnull final EventBus bus,
+		                   @Nonnull final EventReceiver receiver,
+		                   @Nonnull final RuntimeException exception) {
+			throw exception;
+		}
+	};
 
-	/**
-	 * Returns an uncaught exception handler that unregisters the receiver and
-	 * reports the exception.  This was the hard-coded behavior before the
-	 * introduction of {@link UncaughtExceptionHandler}.
-	 *
-	 * @param <T> the event type
-	 * @return the uncaught exception handler
-	 */
-	public static <T> UncaughtExceptionHandler<T> unregisterAndReport() {
+	public static <T> UncaughtExceptionHandler<T> rethrow() {
 		//noinspection unchecked
-		return UNREGISTER_AND_REPORT;
+		return RETHROW;
+	};
+
+	private static final UncaughtExceptionHandler DO_NOTHING = new UncaughtExceptionHandler() {
+		@Override
+		public void handle(@Nonnull final EventBus bus,
+		                   @Nonnull final EventReceiver receiver,
+		                   @Nonnull final RuntimeException exception) {
+			/* Do nothing. */
+		}
+	};
+
+	public static <T> UncaughtExceptionHandler<T> doNothing() {
+		//noinspection unchecked
+		return DO_NOTHING;
 	}
 
-	private static final UncaughtExceptionHandler REPORT_ONLY =
-			new UncaughtExceptionHandler() {
-				@Override
-				public void handle(@Nonnull final EventBus bus,
-				                   @Nonnull final EventReceiver receiver,
-				                   @Nonnull final Exception exception) {
-					bus.report(exception);
-				}
-			};
+	private static final UncaughtExceptionHandler UNREGISTER = new UncaughtExceptionHandler() {
+		@Override
+		public void handle(@Nonnull final EventBus bus,
+		                   @Nonnull final EventReceiver receiver,
+		                   @Nonnull final RuntimeException exception) {
+			//noinspection unchecked
+			bus.unregister(receiver);
+		}
+	};
 
-	/**
-	 * Returns an uncaught exception handler that reports the exception.
-	 *
-	 * @param <T> the event type
-	 * @return the uncaught exception handler
-	 */
-	public static <T> UncaughtExceptionHandler<T> report() {
+	public static <T> UncaughtExceptionHandler<T> unregister() {
 		//noinspection unchecked
-		return REPORT_ONLY;
+		return UNREGISTER;
+	}
+
+	public static <T> UncaughtExceptionHandler<T> report(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+		return new UncaughtExceptionHandler<T>() {
+			@Override
+			public void handle(@Nonnull final EventBus<T> bus,
+			                   @Nonnull final EventReceiver<T> receiver,
+			                   @Nonnull final RuntimeException exception) {
+				exceptionPipeline.broadcast(exception);
+			}
+		};
+	}
+
+	public static <T> UncaughtExceptionHandler<T> unregisterAndReport(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+		return new UncaughtExceptionHandler<T>() {
+			@Override
+			public void handle(@Nonnull final EventBus<T> bus,
+			                   @Nonnull final EventReceiver<T> receiver,
+			                   @Nonnull final RuntimeException exception) {
+				bus.unregister(receiver);
+				exceptionPipeline.broadcast(exception);
+			}
+		};
 	}
 }

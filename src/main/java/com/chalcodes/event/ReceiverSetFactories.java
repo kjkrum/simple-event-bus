@@ -12,9 +12,12 @@ import java.util.TreeSet;
  * @author Kevin Krumwiede
  */
 public class ReceiverSetFactories {
+	// TODO remove 'Factory' from method names?
+
 	private ReceiverSetFactories() { /* Non-instantiable. */ }
 
 	private static final ReceiverSetFactory<Object> HASH_SET_FACTORY = new ReceiverSetFactory<Object>() {
+		@Nonnull
 		@Override
 		public Set<EventReceiver<Object>> newSet(@Nonnull final Set<EventReceiver<Object>> current) {
 			return new HashSet<EventReceiver<Object>>(current);
@@ -34,6 +37,7 @@ public class ReceiverSetFactories {
 	}
 
 	private static final ReceiverSetFactory<Object> LINKED_HASH_SET_FACTORY = new ReceiverSetFactory<Object>() {
+		@Nonnull
 		@Override
 		public Set<EventReceiver<Object>> newSet(@Nonnull final Set<EventReceiver<Object>> current) {
 			return new LinkedHashSet<EventReceiver<Object>>(current);
@@ -53,6 +57,7 @@ public class ReceiverSetFactories {
 	}
 
 	private static final ReceiverSetFactory<Object> TREE_SET_FACTORY = new ReceiverSetFactory<Object>() {
+		@Nonnull
 		@Override
 		public Set<EventReceiver<Object>> newSet(@Nonnull final Set<EventReceiver<Object>> current) {
 			return new LinkedHashSet<EventReceiver<Object>>(current);

@@ -11,26 +11,18 @@ import java.util.concurrent.Executor;
  * @param <T> the event type
  * @author Kevin Krumwiede
  */
-public final class StickyEventBus<T> extends SimpleEventBus<T> {
+public class StickyEventBus<T> extends SimpleEventBus<T> {
 	private final Object mLock = new Object();
 	@Nullable private T mStickyEvent;
 
 	public StickyEventBus(@Nonnull final Executor executor,
-						  @Nullable final EventPipeline<Exception> exceptionPipeline,
 						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
 	                      @Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
-		super(executor, exceptionPipeline, receiverSetFactory, uncaughtExceptionHandler);
+		super(executor, receiverSetFactory, uncaughtExceptionHandler);
 	}
 
-	public StickyEventBus(@Nonnull final Executor executor,
-	                      @Nullable final EventPipeline<Exception> exceptionPipeline,
-	                      @Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		super(executor, exceptionPipeline, receiverSetFactory);
-	}
-
-	public StickyEventBus(@Nonnull final Executor executor,
-						  @Nullable final EventPipeline<Exception> exceptionPipeline) {
-		super(executor, exceptionPipeline);
+	public StickyEventBus(@Nonnull final Executor executor) {
+		super(executor);
 	}
 
 	@Override

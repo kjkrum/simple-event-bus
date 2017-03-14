@@ -35,11 +35,4 @@ public interface EventBus<T> extends EventPipeline<T> {
 	 */
 	@Override
 	void broadcast(@Nonnull T event);
-
-	/**
-	 * Reports an exception from a receiver.
-	 *
-	 * @param exception the exception
-	 */
-	void report(@Nonnull Exception exception);
 }

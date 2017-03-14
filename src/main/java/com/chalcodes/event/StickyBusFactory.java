@@ -1,7 +1,6 @@
 package com.chalcodes.event;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**
@@ -11,26 +10,18 @@ import java.util.concurrent.Executor;
  */
 public class StickyBusFactory<T> extends AbstractBusFactory<T> {
 	public StickyBusFactory(@Nonnull final Executor executor,
-	                        @Nullable final EventBus<Exception> exceptionBus,
 	                        @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
 	                        @Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
-		super(executor, exceptionBus, receiverSetFactory, uncaughtExceptionHandler);
+		super(executor, receiverSetFactory, uncaughtExceptionHandler);
 	}
 
-	public StickyBusFactory(@Nonnull final Executor executor,
-							@Nullable final EventBus<Exception> exceptionBus,
-							@Nonnull final ReceiverSetFactory<T> receiverSetFactory) {
-		this(executor, exceptionBus, receiverSetFactory, UncaughtExceptionHandlers.<T>unregisterAndReport());
-	}
-
-	public StickyBusFactory(@Nonnull final Executor executor,
-							@Nullable final EventBus<Exception> exceptionBus) {
-		this(executor, exceptionBus, ReceiverSetFactories.<T>hashSetFactory());
+	public StickyBusFactory(@Nonnull final Executor executor) {
+		this(executor, ReceiverSetFactories.<T>hashSetFactory(), UncaughtExceptionHandlers.<T>rethrow());
 	}
 
 	@Nonnull
 	@Override
-	public EventBus<T> newBus() {
-		return new StickyEventBus<T>(mExecutor, mExceptionBus, mReceiverSetFactory, mUncaughtExceptionHandler);
+	public StickyEventBus<T> newBus() {
+		return new StickyEventBus<T>(mExecutor, mReceiverSetFactory, mUncaughtExceptionHandler);
 	}
 }

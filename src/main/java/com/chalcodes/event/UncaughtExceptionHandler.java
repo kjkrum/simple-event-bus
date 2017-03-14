@@ -10,5 +10,5 @@ import javax.annotation.Nonnull;
 public interface UncaughtExceptionHandler<T> {
 	void handle(@Nonnull final EventBus<T> bus,
 	            @Nonnull final EventReceiver<T> receiver,
-	            @Nonnull final Exception exception);
+	            @Nonnull final RuntimeException exception);
 }
