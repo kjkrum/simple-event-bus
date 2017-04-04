@@ -12,8 +12,6 @@ import java.util.TreeSet;
  * @author Kevin Krumwiede
  */
 public class ReceiverSetFactories {
-	// TODO remove 'Factory' from method names?
-
 	private ReceiverSetFactories() { /* Non-instantiable. */ }
 
 	private static final ReceiverSetFactory<Object> HASH_SET_FACTORY = new ReceiverSetFactory<Object>() {
@@ -76,5 +74,15 @@ public class ReceiverSetFactories {
 	public static <T> ReceiverSetFactory<T> treeSetFactory() {
 		//noinspection unchecked
 		return (ReceiverSetFactory<T>) TREE_SET_FACTORY;
+	}
+
+	/**
+	 * Gets the suggested default implementation.
+	 *
+	 * @param <T> the event type
+	 * @return the default implementation
+	 */
+	static <T> ReceiverSetFactory<T> defaultFactory() {
+		return hashSetFactory();
 	}
 }

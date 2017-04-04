@@ -16,7 +16,7 @@ public class SimpleBusFactory<T> extends AbstractBusFactory<T> {
 	}
 
 	public SimpleBusFactory(@Nonnull final Executor executor) {
-		this(executor, ReceiverSetFactories.<T>hashSetFactory(), UncaughtExceptionHandlers.<T>rethrow());
+		this(executor, ReceiverSetFactories.<T>defaultFactory(), UncaughtExceptionHandlers.<T>defaultHandler());
 	}
 
 	@Nonnull

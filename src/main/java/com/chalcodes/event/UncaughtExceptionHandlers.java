@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
  * @author Kevin Krumwiede
  */
 public class UncaughtExceptionHandlers {
-	private UncaughtExceptionHandlers() {}
+	private UncaughtExceptionHandlers() { /* Non-instantiable. */ }
 
 	private static final UncaughtExceptionHandler RETHROW = new UncaughtExceptionHandler() {
 		@Override
@@ -75,5 +75,9 @@ public class UncaughtExceptionHandlers {
 				exceptionPipeline.broadcast(exception);
 			}
 		};
+	}
+
+	public static <T> UncaughtExceptionHandler<T> defaultHandler() {
+		return rethrow();
 	}
 }
