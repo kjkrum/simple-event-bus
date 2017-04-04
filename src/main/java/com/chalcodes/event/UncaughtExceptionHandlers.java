@@ -20,7 +20,7 @@ public class UncaughtExceptionHandlers {
 		}
 	};
 
-	public static <T> UncaughtExceptionHandler<T> rethrow() {
+	public static <T> UncaughtExceptionHandler<T> rethrowHandler() {
 		//noinspection unchecked
 		return RETHROW;
 	};
@@ -34,7 +34,7 @@ public class UncaughtExceptionHandlers {
 		}
 	};
 
-	public static <T> UncaughtExceptionHandler<T> doNothing() {
+	public static <T> UncaughtExceptionHandler<T> doNothingHandler() {
 		//noinspection unchecked
 		return DO_NOTHING;
 	}
@@ -49,12 +49,12 @@ public class UncaughtExceptionHandlers {
 		}
 	};
 
-	public static <T> UncaughtExceptionHandler<T> unregister() {
+	public static <T> UncaughtExceptionHandler<T> unregisterHandler() {
 		//noinspection unchecked
 		return UNREGISTER;
 	}
 
-	public static <T> UncaughtExceptionHandler<T> report(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+	public static <T> UncaughtExceptionHandler<T> reportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
 		return new UncaughtExceptionHandler<T>() {
 			@Override
 			public void handle(@Nonnull final EventBus<T> bus,
@@ -65,7 +65,7 @@ public class UncaughtExceptionHandlers {
 		};
 	}
 
-	public static <T> UncaughtExceptionHandler<T> unregisterAndReport(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+	public static <T> UncaughtExceptionHandler<T> unregisterAndReportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
 		return new UncaughtExceptionHandler<T>() {
 			@Override
 			public void handle(@Nonnull final EventBus<T> bus,
@@ -78,6 +78,6 @@ public class UncaughtExceptionHandlers {
 	}
 
 	public static <T> UncaughtExceptionHandler<T> defaultHandler() {
-		return rethrow();
+		return rethrowHandler();
 	}
 }
