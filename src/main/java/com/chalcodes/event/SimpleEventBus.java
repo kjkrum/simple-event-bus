@@ -33,7 +33,7 @@ public final class SimpleEventBus<T> extends AbstractEventBus<T> {
 	 */
 	public SimpleEventBus(@Nonnull final Executor executor,
 	                       @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
-	                       @Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
+	                       @Nonnull final UncaughtExceptionHandler uncaughtExceptionHandler) {
 		super(executor, receiverSetFactory, uncaughtExceptionHandler);
 	}
 

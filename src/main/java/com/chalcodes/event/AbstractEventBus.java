@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
+import static com.chalcodes.event.UncaughtExceptionHandlers.defaultHandler;
+
 /**
  * Package-private base for {@code public final} implementations.
  *
@@ -13,7 +15,7 @@ import java.util.concurrent.Executor;
 abstract class AbstractEventBus<T> implements EventBus<T> {
 	@Nonnull private final Executor mExecutor;
 	@Nonnull private final ReceiverSetFactory<T> mReceiverSetFactory;
-	@Nonnull private final UncaughtExceptionHandler<T> mUncaughtExceptionHandler;
+	@Nonnull private final UncaughtExceptionHandler mUncaughtExceptionHandler;
 	/**
 	 * Copy-on-write collection of receivers.  The collection must never be
 	 * modified via this reference.
@@ -22,7 +24,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 
 	AbstractEventBus(@Nonnull final Executor executor,
 	                      @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
-	                      @Nonnull final UncaughtExceptionHandler<T> uncaughtExceptionHandler) {
+	                      @Nonnull final UncaughtExceptionHandler uncaughtExceptionHandler) {
 		//noinspection ConstantConditions - public API
 		if(executor == null || receiverSetFactory == null || uncaughtExceptionHandler == null) {
 			throw new NullPointerException();
@@ -33,7 +35,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 	}
 
 	AbstractEventBus(@Nonnull final Executor executor) {
-		this(executor, ReceiverSetFactories.<T>defaultFactory(), UncaughtExceptionHandlers.<T>defaultHandler());
+		this(executor, ReceiverSetFactories.<T>defaultFactory(), defaultHandler());
 	}
 
 	@Override
@@ -107,7 +109,9 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 			try {
 				receiver.onEvent(this, event);
 			} catch(RuntimeException e) {
-				mUncaughtExceptionHandler.handle(this, receiver, e);
+				if(mUncaughtExceptionHandler.handle(e)) {
+					unregister(receiver);
+				};
 			}
 		}
 	}

@@ -7,8 +7,13 @@ import javax.annotation.Nonnull;
  *
  * @author Kevin Krumwiede
  */
-public interface UncaughtExceptionHandler<T> {
-	void handle(@Nonnull final EventBus<T> bus,
-	            @Nonnull final EventReceiver<T> receiver,
-	            @Nonnull final RuntimeException exception);
+public interface UncaughtExceptionHandler {
+	/**
+	 * Handles a runtime exception.
+	 *
+	 * @param exception the exception
+	 * @return true if the receiver that threw the exception should be
+	 * unregistered; otherwise false
+	 */
+	boolean handle(@Nonnull final RuntimeException exception);
 }

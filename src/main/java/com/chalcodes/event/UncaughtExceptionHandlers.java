@@ -13,71 +13,58 @@ public class UncaughtExceptionHandlers {
 
 	private static final UncaughtExceptionHandler RETHROW = new UncaughtExceptionHandler() {
 		@Override
-		public void handle(@Nonnull final EventBus bus,
-		                   @Nonnull final EventReceiver receiver,
-		                   @Nonnull final RuntimeException exception) {
+		public boolean handle(@Nonnull final RuntimeException exception) {
 			throw exception;
 		}
 	};
 
-	public static <T> UncaughtExceptionHandler<T> rethrowHandler() {
-		//noinspection unchecked
+	public static UncaughtExceptionHandler rethrowHandler() {
 		return RETHROW;
 	};
 
 	private static final UncaughtExceptionHandler DO_NOTHING = new UncaughtExceptionHandler() {
 		@Override
-		public void handle(@Nonnull final EventBus bus,
-		                   @Nonnull final EventReceiver receiver,
-		                   @Nonnull final RuntimeException exception) {
-			/* Do nothing. */
+		public boolean handle(@Nonnull final RuntimeException exception) {
+			return false;
 		}
 	};
 
-	public static <T> UncaughtExceptionHandler<T> doNothingHandler() {
-		//noinspection unchecked
+	public static UncaughtExceptionHandler doNothingHandler() {
 		return DO_NOTHING;
 	}
 
 	private static final UncaughtExceptionHandler UNREGISTER = new UncaughtExceptionHandler() {
 		@Override
-		public void handle(@Nonnull final EventBus bus,
-		                   @Nonnull final EventReceiver receiver,
-		                   @Nonnull final RuntimeException exception) {
-			//noinspection unchecked
-			bus.unregister(receiver);
+		public boolean handle(@Nonnull final RuntimeException exception) {
+			return true;
 		}
 	};
 
-	public static <T> UncaughtExceptionHandler<T> unregisterHandler() {
-		//noinspection unchecked
+	public static UncaughtExceptionHandler unregisterHandler() {
 		return UNREGISTER;
 	}
 
-	public static <T> UncaughtExceptionHandler<T> reportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
-		return new UncaughtExceptionHandler<T>() {
+	public static <T> UncaughtExceptionHandler reportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+		return new UncaughtExceptionHandler() {
 			@Override
-			public void handle(@Nonnull final EventBus<T> bus,
-			                   @Nonnull final EventReceiver<T> receiver,
-			                   @Nonnull final RuntimeException exception) {
+			public boolean handle(@Nonnull final RuntimeException exception) {
 				exceptionPipeline.broadcast(exception);
+				return false;
 			}
 		};
 	}
 
-	public static <T> UncaughtExceptionHandler<T> unregisterAndReportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
-		return new UncaughtExceptionHandler<T>() {
+	public static <T> UncaughtExceptionHandler reportAndUnregisterHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+		return new UncaughtExceptionHandler() {
 			@Override
-			public void handle(@Nonnull final EventBus<T> bus,
-			                   @Nonnull final EventReceiver<T> receiver,
-			                   @Nonnull final RuntimeException exception) {
-				bus.unregister(receiver);
+			public boolean handle(@Nonnull final RuntimeException exception) {
 				exceptionPipeline.broadcast(exception);
+				return true;
 			}
 		};
 	}
 
-	public static <T> UncaughtExceptionHandler<T> defaultHandler() {
+	public static <T> UncaughtExceptionHandler defaultHandler() {
 		return rethrowHandler();
 	}
 }
