@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Executor;
 
+import static com.chalcodes.event.ReceiverSetFactories.defaultFactory;
 import static com.chalcodes.event.UncaughtExceptionHandlers.defaultHandler;
 
 /**
@@ -14,7 +15,7 @@ import static com.chalcodes.event.UncaughtExceptionHandlers.defaultHandler;
  */
 abstract class AbstractEventBus<T> implements EventBus<T> {
 	@Nonnull private final Executor mExecutor;
-	@Nonnull private final ReceiverSetFactory<T> mReceiverSetFactory;
+	@Nonnull private final ReceiverSetFactory mReceiverSetFactory;
 	@Nonnull private final UncaughtExceptionHandler mUncaughtExceptionHandler;
 	/**
 	 * Copy-on-write collection of receivers.  The collection must never be
@@ -23,7 +24,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 	@Nonnull private volatile Set<EventReceiver<T>> mReceivers = Collections.emptySet();
 
 	AbstractEventBus(@Nonnull final Executor executor,
-	                      @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
+	                      @Nonnull final ReceiverSetFactory receiverSetFactory,
 	                      @Nonnull final UncaughtExceptionHandler uncaughtExceptionHandler) {
 		//noinspection ConstantConditions - public API
 		if(executor == null || receiverSetFactory == null || uncaughtExceptionHandler == null) {
@@ -35,7 +36,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 	}
 
 	AbstractEventBus(@Nonnull final Executor executor) {
-		this(executor, ReceiverSetFactories.<T>defaultFactory(), defaultHandler());
+		this(executor, defaultFactory(), defaultHandler());
 	}
 
 	@Override
@@ -48,7 +49,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 			return false;
 		}
 		else {
-			final Set<EventReceiver<T>> tmp = mReceiverSetFactory.newSet(mReceivers);
+			final Set<EventReceiver<T>> tmp = mReceiverSetFactory.copy(mReceivers);
 			tmp.add(receiver);
 			mReceivers = tmp;
 			return true;
@@ -62,7 +63,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 			throw new NullPointerException();
 		}
 		if(mReceivers.contains(receiver)) {
-			final Set<EventReceiver<T>> tmp = mReceiverSetFactory.newSet(mReceivers);
+			final Set<EventReceiver<T>> tmp = mReceiverSetFactory.copy(mReceivers);
 			tmp.remove(receiver);
 			mReceivers = tmp;
 			return true;

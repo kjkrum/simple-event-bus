@@ -36,7 +36,7 @@ public final class StickyEventBus<T> extends AbstractEventBus<T> {
 	 * @see UncaughtExceptionHandlers
 	 */
 	public StickyEventBus(@Nonnull final Executor executor,
-						  @Nonnull final ReceiverSetFactory<T> receiverSetFactory,
+						  @Nonnull final ReceiverSetFactory receiverSetFactory,
 	                      @Nonnull final UncaughtExceptionHandler uncaughtExceptionHandler) {
 		super(executor, receiverSetFactory, uncaughtExceptionHandler);
 	}

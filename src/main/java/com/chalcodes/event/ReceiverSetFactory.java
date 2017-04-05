@@ -8,7 +8,7 @@ import java.util.Set;
  *
  * @author Kevin Krumwiede
  */
-public interface ReceiverSetFactory<T> {
+public interface ReceiverSetFactory {
 	/**
 	 * Creates a new set of receivers containing the elements of the current
 	 * set.
@@ -16,5 +16,5 @@ public interface ReceiverSetFactory<T> {
 	 * @param current the current receivers
 	 * @return a new set containing the elements of current
 	 */
-	@Nonnull Set<EventReceiver<T>> newSet(@Nonnull Set<EventReceiver<T>> current);
+	@Nonnull <T> Set<EventReceiver<T>> copy(@Nonnull Set<EventReceiver<T>> current);
 }
