@@ -44,7 +44,7 @@ public class UncaughtExceptionHandlers {
 		return UNREGISTER;
 	}
 
-	public static <T> UncaughtExceptionHandler reportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+	public static UncaughtExceptionHandler reportHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
 		return new UncaughtExceptionHandler() {
 			@Override
 			public boolean handle(@Nonnull final RuntimeException exception) {
@@ -54,7 +54,7 @@ public class UncaughtExceptionHandlers {
 		};
 	}
 
-	public static <T> UncaughtExceptionHandler reportAndUnregisterHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
+	public static UncaughtExceptionHandler reportAndUnregisterHandler(@Nonnull final EventPipeline<? super RuntimeException> exceptionPipeline) {
 		return new UncaughtExceptionHandler() {
 			@Override
 			public boolean handle(@Nonnull final RuntimeException exception) {
@@ -64,7 +64,7 @@ public class UncaughtExceptionHandlers {
 		};
 	}
 
-	public static <T> UncaughtExceptionHandler defaultHandler() {
+	public static UncaughtExceptionHandler defaultHandler() {
 		return rethrowHandler();
 	}
 }
