@@ -1,50 +1,55 @@
 package com.chalcodes.event;
 
 import javax.annotation.Nonnull;
-import java.util.Set;
-import java.util.concurrent.Executor;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
- * An event bus that dispatches events using a single-threaded {@link
- * Executor}.  Receivers must be registered and unregistered only in the
- * executor thread.
+ * A synchronous multicast op. This class is not thread safe.
  *
- * @param <T> the event type
  * @author Kevin Krumwiede
  */
-public final class SimpleEventBus<T> extends AbstractEventBus<T> {
-	/**
-	 * Creates an event bus.  The order in which receivers are called is
-	 * determined by the iteration order of the sets produced by the receiver
-	 * set factory.
-	 * <p>
-	 * Use custom receiver set factories with caution.  If the factory
-	 * produces sets that violate the contract of {@link Set}, or leaks the
-	 * receiver sets to other parts of the application, the internal state of
-	 * the event bus may be compromised, leading to unspecified behavior.
-	 *
-	 * @param executor the broadcast executor
-	 * @param receiverSetFactory the receiver set factory
-	 * @param uncaughtExceptionHandler the uncaught exception handler
-	 * @throws NullPointerException if executor, receiverSetFactory, or
-	 * uncaughtExceptionHandler is null
-	 * @see ReceiverSetFactories
-	 * @see UncaughtExceptionHandlers
-	 */
-	public SimpleEventBus(@Nonnull final Executor executor,
-	                      @Nonnull final ReceiverSetFactory receiverSetFactory,
-	                      @Nonnull final UncaughtExceptionHandler uncaughtExceptionHandler) {
-		super(executor, receiverSetFactory, uncaughtExceptionHandler);
+public class SimpleEventBus<E> implements Op<E, E> {
+	@Nonnull private final Collection<Receiver<? super E>> mReceivers;
+	@Nullable private final ExceptionHandler mExceptionHandler;
+
+	public SimpleEventBus(@Nonnull final Collection<Receiver<? super E>> receivers,
+	                      @Nullable final ExceptionHandler exceptionHandler) {
+		mReceivers = receivers;
+		mExceptionHandler = exceptionHandler;
 	}
 
-	/**
-	 * Creates an event bus with a receiver set factory that produces hash
-	 * sets and an uncaught exception handler that rethrows exceptions.
-	 *
-	 * @param executor the broadcast executor
-	 * @throws NullPointerException if executor is null
-	 */
-	public SimpleEventBus(@Nonnull final Executor executor) {
-		super(executor);
+	public SimpleEventBus() {
+		this(new ArrayList<Receiver<? super E>>(1), null);
+	}
+
+	@Override
+	public boolean register(@Nonnull final Receiver<? super E> receiver) {
+		return mReceivers.add(receiver);
+	}
+
+	@Override
+	public boolean unregister(@Nonnull final Receiver<? super E> receiver) {
+		return mReceivers.remove(receiver);
+	}
+
+	@Override
+	public void onEvent(@Nonnull final E event) {
+		for(final Receiver<? super E> receiver : mReceivers) {
+			dispatch(receiver, event);
+		}
+	}
+
+	protected void dispatch(final Receiver<? super E> receiver, final E event) {
+		try {
+			receiver.onEvent(event);
+		}
+		catch(RuntimeException e) {
+			if(mExceptionHandler == null) {
+				throw e;
+			}
+			mExceptionHandler.onException(this, receiver, event, e);
+		}
 	}
 }
