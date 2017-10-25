@@ -6,6 +6,7 @@ import com.chalcodes.event.Receiver;
 import com.chalcodes.event.StickyOp;
 import com.chalcodes.event.ops.Catch;
 import com.chalcodes.event.ops.DeliverOn;
+import com.chalcodes.event.ops.QueueOn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -85,6 +86,8 @@ public class Stream {
 		public EmitterBuilder<O> deliverOn(@Nonnull final Executor executor) {
 			return to(new DeliverOn<O>(executor));
 		}
+
+		public EmitterBuilder<O> queueOn(@Nonnull final Executor executor) { return to(new QueueOn<O>(executor)); }
 	}
 
 	/**
@@ -181,6 +184,11 @@ public class Stream {
 		public OpBuilder<I, O> deliverOn(@Nonnull final Executor executor) {
 			return (OpBuilder<I, O>) super.deliverOn(executor);
 		}
+
+		@Override
+		public OpBuilder<I, O> queueOn(@Nonnull final Executor executor) {
+			return (OpBuilder<I, O>) super.queueOn(executor);
+		}
 	}
 
 	/* Static factory methods. */
@@ -201,5 +209,9 @@ public class Stream {
 
 	public static <E> OpBuilder<E, E> deliverOn(@Nonnull final Executor executor) {
 		return from(new DeliverOn<E>(executor));
+	}
+
+	public static <E> OpBuilder<E, E> queueOn(@Nonnull final Executor executor) {
+		return from(new QueueOn<E>(executor));
 	}
 }
