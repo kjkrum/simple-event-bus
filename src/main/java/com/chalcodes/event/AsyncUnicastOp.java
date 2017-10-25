@@ -1,9 +1,6 @@
-package com.chalcodes.event.ops;
-
-import com.chalcodes.event.Receiver;
+package com.chalcodes.event;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**

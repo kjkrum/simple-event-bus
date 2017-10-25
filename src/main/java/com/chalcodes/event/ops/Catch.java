@@ -1,6 +1,7 @@
 package com.chalcodes.event.ops;
 
 import com.chalcodes.event.Receiver;
+import com.chalcodes.event.UnicastOp;
 
 import javax.annotation.Nonnull;
 

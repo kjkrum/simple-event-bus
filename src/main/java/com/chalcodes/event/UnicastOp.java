@@ -1,4 +1,4 @@
-package com.chalcodes.event.ops;
+package com.chalcodes.event;
 
 import com.chalcodes.event.Op;
 import com.chalcodes.event.Receiver;

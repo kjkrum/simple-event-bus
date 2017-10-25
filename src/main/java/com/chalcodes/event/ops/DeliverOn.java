@@ -1,11 +1,8 @@
 package com.chalcodes.event.ops;
 
-import com.chalcodes.event.Emitter;
-import com.chalcodes.event.ExceptionHandler;
-import com.chalcodes.event.Receiver;
+import com.chalcodes.event.AsyncUnicastOp;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.concurrent.Executor;
 
 /**

@@ -1,9 +1,11 @@
-package com.chalcodes.event.ops;
+package com.chalcodes.event;
 
 import com.chalcodes.event.Emitter;
 import com.chalcodes.event.Op;
 import com.chalcodes.event.Receiver;
 import com.chalcodes.event.StickyOp;
+import com.chalcodes.event.ops.Catch;
+import com.chalcodes.event.ops.DeliverOn;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
