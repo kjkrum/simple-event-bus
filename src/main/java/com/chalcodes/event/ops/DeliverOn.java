@@ -18,15 +18,11 @@ import java.util.concurrent.Executor;
  */
 
 // TODO document that this is single delivery
+// TODO is an exception receiver really needed here?
 public class DeliverOn<E> extends AsyncUnicastOp<E,E> {
 
-	public DeliverOn(@Nonnull final Executor executor,
-	                 @Nullable final Receiver<? super RuntimeException> exceptionReceiver) {
-		super(executor, exceptionReceiver);
-	}
-
 	public DeliverOn(@Nonnull final Executor executor) {
-		this(executor, null);
+		super(executor);
 	}
 
 	@Override
@@ -34,15 +30,7 @@ public class DeliverOn<E> extends AsyncUnicastOp<E,E> {
 		mExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					mReceiver.onEvent(event);
-				}
-				catch(RuntimeException e) {
-					if(mExceptionReceiver == null) {
-						throw e;
-					}
-					mExceptionReceiver.onEvent(e);
-				}
+			mReceiver.onEvent(event);
 			}
 		});
 	}

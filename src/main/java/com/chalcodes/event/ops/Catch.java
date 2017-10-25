@@ -10,10 +10,11 @@ import javax.annotation.Nonnull;
  * @author Kevin Krumwiede
  */
 public class Catch<E> extends UnicastOp<E,E> {
+	/* Not an ExceptionHandler because exceptions may have distant origins. */
 	private final Receiver<? super RuntimeException> mExceptionReceiver;
 
-	public Catch(final Receiver<? super RuntimeException> exceptionReceiver) {
-		mExceptionReceiver = exceptionReceiver;
+	public Catch(final Receiver<? super RuntimeException> receiver) {
+		mExceptionReceiver = receiver;
 	}
 
 	@Override

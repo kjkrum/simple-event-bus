@@ -13,11 +13,8 @@ import java.util.concurrent.Executor;
  */
 abstract public class AsyncUnicastOp<I, O> extends UnicastOp<I, O> {
 	@Nonnull protected final Executor mExecutor;
-	@Nullable protected final Receiver<? super RuntimeException> mExceptionReceiver;
 
-	protected AsyncUnicastOp(@Nonnull final Executor executor,
-	                         @Nullable final Receiver<? super RuntimeException> exceptionReceiver) {
+	protected AsyncUnicastOp(@Nonnull final Executor executor) {
 		mExecutor = executor;
-		mExceptionReceiver = exceptionReceiver;
 	}
 }
