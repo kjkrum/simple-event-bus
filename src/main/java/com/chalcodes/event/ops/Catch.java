@@ -1,7 +1,8 @@
 package com.chalcodes.event.ops;
 
+import com.chalcodes.event.Op;
 import com.chalcodes.event.Receiver;
-import com.chalcodes.event.UnicastOp;
+import com.chalcodes.event.AbstractEmitter;
 
 import javax.annotation.Nonnull;
 
@@ -10,11 +11,11 @@ import javax.annotation.Nonnull;
  *
  * @author Kevin Krumwiede
  */
-public class Catch<E> extends UnicastOp<E,E> {
+public class Catch<E> extends AbstractEmitter<E> implements Op<E, E> {
 	/* Not an ExceptionHandler because exceptions may have distant origins. */
 	private final Receiver<? super RuntimeException> mExceptionReceiver;
 
-	public Catch(final Receiver<? super RuntimeException> receiver) {
+	public Catch(@Nonnull final Receiver<? super RuntimeException> receiver) {
 		mExceptionReceiver = receiver;
 	}
 

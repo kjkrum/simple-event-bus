@@ -1,12 +1,6 @@
 package com.chalcodes.event;
 
-import com.chalcodes.event.Emitter;
-import com.chalcodes.event.Op;
-import com.chalcodes.event.Receiver;
-import com.chalcodes.event.StickyOp;
-import com.chalcodes.event.ops.Catch;
-import com.chalcodes.event.ops.DeliverOn;
-import com.chalcodes.event.ops.QueueOn;
+import com.chalcodes.event.ops.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,11 +16,45 @@ import java.util.concurrent.Executor;
 public class Stream {
 	private Stream() {}
 
+	/* Static factory methods. */
+
+	public static <O> EmitterBuilder<O> from(@Nonnull final Emitter<O> emitter) {
+		return new EmitterBuilder<O>(emitter);
+	}
+
+	public static <I, O> OpBuilder<I, O> from(@Nonnull final Op<I, O> op) {
+		return new OpBuilder<I, O>(op);
+	}
+
+	/* Static convenience methods. */
+
+	public static <E> OpBuilder<E, E> block(@Nonnull final Filter<E> filter) {
+		return pass(Filters.invert(filter));
+	}
+
+	public static <E> OpBuilder<E, E> catch_(@Nonnull final Receiver<? super RuntimeException> receiver) {
+		return from(new Catch<E>(receiver));
+	}
+
+	public static <E> OpBuilder<E, E> deliverOn(@Nonnull final Executor executor) {
+		return from(new DeliverOn<E>(executor));
+	}
+
+	public static <E> OpBuilder<E, E> pass(@Nonnull final Filter<E> filter) {
+		return from(new Pass<E>(filter));
+	}
+
+	public static <E> OpBuilder<E, E> queueOn(@Nonnull final Executor executor) {
+		return from(new QueueOn<E>(executor));
+	}
+
+	// TODO all the ops!
+
 	/**
 	 * Builds an {@link Emitter} or nothing depending on whether the
 	 * stream terminates in an {@link Op} or a {@link Receiver}.
 	 *
-	 * @param <O>
+	 * @param <O> the emitter event type
 	 */
 	public static class EmitterBuilder<O> {
 		Emitter<O> mTail;
@@ -79,6 +107,10 @@ public class Stream {
 
 		/* Convenience methods. */
 
+		public EmitterBuilder<O> block(@Nonnull final Filter<O> filter) {
+			return pass(Filters.invert(filter));
+		}
+
 		public EmitterBuilder<O> catch_(@Nonnull final Receiver<? super RuntimeException> receiver) {
 			return to(new Catch<O>(receiver));
 		}
@@ -87,15 +119,21 @@ public class Stream {
 			return to(new DeliverOn<O>(executor));
 		}
 
+		public EmitterBuilder<O> pass(@Nonnull final Filter<O> filter) {
+			return to(new Pass<O>(filter));
+		}
+
 		public EmitterBuilder<O> queueOn(@Nonnull final Executor executor) { return to(new QueueOn<O>(executor)); }
+
+		// TODO all the ops!
 	}
 
 	/**
 	 * Builds an {@link Op} or a {@link Receiver} depending on which the
 	 * stream terminates in.
 	 *
-	 * @param <I>
-	 * @param <O>
+	 * @param <I> the receiver event type
+	 * @param <O> the emitter event type
 	 */
 	public static class OpBuilder<I, O> extends EmitterBuilder<O> {
 		// parameterized this way because O changes with mTail.
@@ -176,6 +214,11 @@ public class Stream {
 		/* Convenience methods. */
 
 		@Override
+		public OpBuilder<I, O> block(@Nonnull final Filter<O> filter) {
+			return pass(Filters.invert(filter));
+		}
+
+		@Override
 		public OpBuilder<I, O> catch_(@Nonnull final Receiver<? super RuntimeException> receiver) {
 			return (OpBuilder<I, O>) super.catch_(receiver);
 		}
@@ -186,32 +229,15 @@ public class Stream {
 		}
 
 		@Override
+		public OpBuilder<I, O> pass(@Nonnull final Filter<O> filter) {
+			return (OpBuilder<I, O>) super.pass(filter);
+		}
+
+		@Override
 		public OpBuilder<I, O> queueOn(@Nonnull final Executor executor) {
 			return (OpBuilder<I, O>) super.queueOn(executor);
 		}
-	}
 
-	/* Static factory methods. */
-
-	public static <O> EmitterBuilder<O> from(@Nonnull final Emitter<O> emitter) {
-		return new EmitterBuilder<O>(emitter);
-	}
-
-	public static <I, O> OpBuilder<I, O> from(@Nonnull final Op<I, O> op) {
-		return new OpBuilder<I, O>(op);
-	}
-
-	/* Static convenience methods. */
-
-	public static <E> OpBuilder<E, E> catch_(@Nonnull final Receiver<? super RuntimeException> receiver) {
-		return from(new Catch<E>(receiver));
-	}
-
-	public static <E> OpBuilder<E, E> deliverOn(@Nonnull final Executor executor) {
-		return from(new DeliverOn<E>(executor));
-	}
-
-	public static <E> OpBuilder<E, E> queueOn(@Nonnull final Executor executor) {
-		return from(new QueueOn<E>(executor));
+		// TODO all the ops!
 	}
 }

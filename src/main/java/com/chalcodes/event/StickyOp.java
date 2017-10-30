@@ -18,5 +18,5 @@ public interface StickyOp<I, O> extends Op<I, O> {
 	@Nullable
 	O setEvent(@Nullable O event);
 
-	// TODO is there a compelling need for a getter?
+	// TODO get/set/clear? or just clear and an Ignore op?
 }

@@ -9,7 +9,19 @@ import javax.annotation.Nonnull;
  * @author Kevin Krumwiede
  */
 public interface Emitter<E> {
+	/**
+	 * Registers a receiver.
+	 *
+	 * @param receiver the receiver to register
+	 * @return true if the receiver was registered; otherwise false
+	 */
 	boolean register(@Nonnull Receiver<? super E> receiver);
+
+	/**
+	 * Unregisters a receiver.
+	 *
+	 * @param receiver the receiver to unregister
+	 * @return true if the receiver was unregistered; otherwise false
+	 */
 	boolean unregister(@Nonnull Receiver<? super E> receiver);
-	// TODO consider and document whether methods should ever throw IllegalStateException
 }

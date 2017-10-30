@@ -8,6 +8,7 @@ import java.util.Iterator;
 /**
  * A {@link Collection} wrapper that copies its delegate on modification.
  *
+ * @param <E> the element type
  * @author Kevin Krumwiede
  */
 public class CopyOnWriteCollection<E> implements Collection<E> {
@@ -16,10 +17,6 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 
 	public CopyOnWriteCollection(final CollectionFactory copyFactory) {
 		mCopyFactory = copyFactory;
-	}
-
-	public CopyOnWriteCollection() {
-		this(CollectionFactories.arrayList());
 	}
 
 	@Override
@@ -43,7 +40,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 	}
 
 	@Override
-	public boolean addAll(final Collection<? extends E> c) {
+	public boolean addAll(@Nonnull final Collection<? extends E> c) {
 		final Collection<E> copy = mCopyFactory.copy(mCollection);
 		final boolean changed = copy.addAll(c);
 		if(changed) {
@@ -53,7 +50,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 	}
 
 	@Override
-	public boolean removeAll(final Collection<?> c) {
+	public boolean removeAll(@Nonnull final Collection<?> c) {
 		final Collection<E> copy = mCopyFactory.copy(mCollection);
 		final boolean changed = copy.removeAll(c);
 		if(changed) {
@@ -63,7 +60,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 	}
 
 	@Override
-	public boolean retainAll(final Collection<?> c) {
+	public boolean retainAll(@Nonnull final Collection<?> c) {
 		final Collection<E> copy = mCopyFactory.copy(mCollection);
 		final boolean changed = copy.retainAll(c);
 		if(changed) {
@@ -131,7 +128,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 	}
 
 	@Override
-	public boolean containsAll(final Collection<?> c) {
+	public boolean containsAll(@Nonnull final Collection<?> c) {
 		return mCollection.containsAll(c);
 	}
 }

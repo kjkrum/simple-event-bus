@@ -1,7 +1,7 @@
 package com.chalcodes.event;
 
 /**
- * // TODO javadoc
+ * Handles runtime exceptions propagating from receivers.
  *
  * @author Kevin Krumwiede
  */

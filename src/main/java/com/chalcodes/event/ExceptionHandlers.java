@@ -32,8 +32,6 @@ public class ExceptionHandlers {
 		return UNREGISTER;
 	}
 
-	// TODO does it make any sense for the exception receiver to receive the emitter?  it's not an emitter of exceptions...
-
 	public static ExceptionHandler report(@Nonnull final Receiver<? super RuntimeException> exceptionReceiver) {
 		return new ExceptionHandler() {
 			@Override

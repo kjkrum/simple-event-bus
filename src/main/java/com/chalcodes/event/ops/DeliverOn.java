@@ -1,6 +1,7 @@
 package com.chalcodes.event.ops;
 
-import com.chalcodes.event.AsyncUnicastOp;
+import com.chalcodes.event.AbstractAsyncEmitter;
+import com.chalcodes.event.Op;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.Executor;
@@ -13,11 +14,7 @@ import java.util.concurrent.Executor;
  *
  * @author Kevin Krumwiede
  */
-
-// TODO document that this is single delivery
-// TODO is an exception receiver really needed here?
-public class DeliverOn<E> extends AsyncUnicastOp<E,E> {
-
+public class DeliverOn<E> extends AbstractAsyncEmitter<E> implements Op<E, E> {
 	public DeliverOn(@Nonnull final Executor executor) {
 		super(executor);
 	}

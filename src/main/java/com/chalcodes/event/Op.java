@@ -1,7 +1,8 @@
 package com.chalcodes.event;
 
 /**
- * TODO javadoc
+ * Processes events. An op may emit zero or more events for each event it
+ * receives.
  *
  * @author Kevin Krumwiede
  */
