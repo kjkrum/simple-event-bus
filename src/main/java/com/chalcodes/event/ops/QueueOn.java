@@ -26,8 +26,8 @@ public final class QueueOn<E> extends AbstractAsyncEmitter<E> implements Op<E, E
 
 	/**
 	 * Queues an event and calls {@link #drain()}. If this method throws any
-	 * of the exceptions listed for {@link AbstractQueue#add(E)}, the event
-	 * was not added to the queue.
+	 * of the exceptions listed for {@link AbstractQueue#add(Object)}, the
+	 * event was not added to the queue.
 	 *
 	 * @param event the event
 	 */
@@ -40,14 +40,11 @@ public final class QueueOn<E> extends AbstractAsyncEmitter<E> implements Op<E, E
 	/**
 	 * Executes a task to drain the queue to the current receiver, if a
 	 * receiver is registered and such a task is not already running or
-	 * pending. If this method throws {@link RejectedExecutionException},
+	 * pending. This method is <em>not</em> called when a receiver is
+	 * registered. If this method throws {@link RejectedExecutionException},
 	 * events remain in the queue for possible delivery the next time this
 	 * method is called. Whether this condition is recoverable depends on the
 	 * executor.
-	 * <p>
-	 * This method is not automatically called when a receiver is registered.
-	 * If there may be events in the queue, it should be called immediately
-	 * after a successful call to {@link #register(Receiver) register}.
 	 */
 	public void drain() {
 		final Receiver<? super E> receiver = mReceiver;

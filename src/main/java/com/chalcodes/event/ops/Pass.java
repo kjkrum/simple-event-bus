@@ -6,7 +6,7 @@ import com.chalcodes.event.Op;
 import javax.annotation.Nonnull;
 
 /**
- * Delivers events match a {@link Filter}. Events that do not match are
+ * Delivers events that match a {@link Filter}. Events that do not match are
  * silently ignored.
  *
  * @author Kevin Krumwiede

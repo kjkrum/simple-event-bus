@@ -52,7 +52,7 @@ public class Stream {
 
 	/**
 	 * Builds an {@link Emitter} or nothing depending on whether the
-	 * stream terminates in an {@link Op} or a {@link Receiver}.
+	 * stream ends in an {@link Op} or a {@link Receiver}.
 	 *
 	 * @param <O> the emitter event type
 	 */
@@ -130,7 +130,7 @@ public class Stream {
 
 	/**
 	 * Builds an {@link Op} or a {@link Receiver} depending on which the
-	 * stream terminates in.
+	 * stream ends in.
 	 *
 	 * @param <I> the receiver event type
 	 * @param <O> the emitter event type

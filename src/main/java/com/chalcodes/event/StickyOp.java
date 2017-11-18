@@ -18,5 +18,5 @@ public interface StickyOp<I, O> extends Op<I, O> {
 	@Nullable
 	O setEvent(@Nullable O event);
 
-	// TODO get/set/clear? or just clear and an Ignore op?
+	// TODO get/set/clear? only set? only clear and an Ignore op?
 }

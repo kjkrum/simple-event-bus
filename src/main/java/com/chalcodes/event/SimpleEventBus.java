@@ -12,10 +12,10 @@ import java.util.Collection;
  */
 public class SimpleEventBus<E> implements Op<E, E> {
 	@Nonnull private final Collection<Receiver<? super E>> mReceivers;
-	@Nullable private final ExceptionHandler mExceptionHandler;
+	@Nullable private final ExceptionHandler<E> mExceptionHandler;
 
 	public SimpleEventBus(@Nonnull final Collection<Receiver<? super E>> receivers,
-	                      @Nullable final ExceptionHandler exceptionHandler) {
+	                      @Nullable final ExceptionHandler<E> exceptionHandler) {
 		mReceivers = receivers;
 		mExceptionHandler = exceptionHandler;
 	}
@@ -41,7 +41,7 @@ public class SimpleEventBus<E> implements Op<E, E> {
 		}
 	}
 
-	protected void dispatch(final Receiver<? super E> receiver, final E event) {
+	void dispatch(final Receiver<? super E> receiver, final E event) {
 		try {
 			receiver.onEvent(event);
 		}

@@ -73,7 +73,7 @@ abstract class AbstractEventBus<T> implements EventBus<T> {
 		}
 	}
 
-	/* Why not copy mReceivers and dispatch to copy.retainAll(mReceivers)?
+	/* Why not createFrom mReceivers and dispatch to createFrom.retainAll(mReceivers)?
 	 * This would not be exactly the same as testing mReceivers.contains(...)
 	 * for each receiver.  The difference is in what would happen if one
 	 * receiver unregistered another receiver that is in the retained set

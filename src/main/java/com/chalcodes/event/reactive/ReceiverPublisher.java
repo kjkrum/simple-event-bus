@@ -13,7 +13,15 @@ import javax.annotation.Nonnull;
  *
  * @author Kevin Krumwiede
  */
-public class PublisherReceiver<T> implements Receiver<T>, Publisher<T> {
+public class ReceiverPublisher<T> implements Receiver<T>, Publisher<T> {
+	/* Receiver */
+	@Override
+	public void onEvent(@Nonnull final T event) {
+		if(mSubscriber != null) {
+			mSubscriber.onNext(event);
+		}
+	}
+
 	/* Publisher */
 	private Subscriber<? super T> mSubscriber;
 	private Subscription mSubscription;
@@ -45,14 +53,6 @@ public class PublisherReceiver<T> implements Receiver<T>, Publisher<T> {
 		}
 		else {
 			subscriber.onError(new Exception("subscription rejected"));
-		}
-	}
-
-	/* Receiver */
-	@Override
-	public void onEvent(@Nonnull final T event) {
-		if(mSubscriber != null) {
-			mSubscriber.onNext(event);
 		}
 	}
 }
