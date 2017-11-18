@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TODO javadoc
+ * Creates ops by class.
  *
  * @author Kevin Krumwiede
  */

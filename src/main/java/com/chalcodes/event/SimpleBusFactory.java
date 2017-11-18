@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * TODO javadoc
+ * An {@code OpFactory} that creates instances of {@link SimpleEventBus}.
  *
  * @author Kevin Krumwiede
  */

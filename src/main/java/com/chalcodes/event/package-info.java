@@ -5,7 +5,6 @@
  */
 package com.chalcodes.event;
 
-// TODO port old EventWrapper? maybe call it Maybe...
 // TODO port old ClassBusFactory and supporting classes
 // TODO port old RegistrationHelper
 // TODO audit @Nullable/@Nonnull annotations

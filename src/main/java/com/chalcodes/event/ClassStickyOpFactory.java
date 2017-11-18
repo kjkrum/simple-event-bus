@@ -3,7 +3,7 @@ package com.chalcodes.event;
 import javax.annotation.Nonnull;
 
 /**
- * TODO javadoc
+ * Creates sticky ops by class.
  *
  * @author Kevin Krumwiede
  */

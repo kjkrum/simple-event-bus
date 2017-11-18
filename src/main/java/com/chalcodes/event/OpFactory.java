@@ -1,7 +1,7 @@
 package com.chalcodes.event;
 
 /**
- * TODO javadoc
+ * Creates ops.
  *
  * @author Kevin Krumwiede
  */

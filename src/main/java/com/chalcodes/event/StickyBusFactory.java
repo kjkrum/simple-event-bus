@@ -3,7 +3,7 @@ package com.chalcodes.event;
 import com.chalcodes.util.CollectionFactory;
 
 /**
- * TODO javadoc
+ * An {@code OpFactory} that creates instances of {@link StickyEventBus}.
  *
  * @author Kevin Krumwiede
  */
