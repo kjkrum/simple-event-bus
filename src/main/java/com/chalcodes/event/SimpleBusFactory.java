@@ -11,8 +11,8 @@ import java.util.Collections;
  * @author Kevin Krumwiede
  */
 public class SimpleBusFactory<E> implements OpFactory<E, E> {
-	final CollectionFactory mCollectionFactory;
-	final ExceptionHandler<E> mExceptionHandler;
+	private final CollectionFactory mCollectionFactory;
+	private final ExceptionHandler<E> mExceptionHandler;
 
 	public SimpleBusFactory(final CollectionFactory collectionFactory, final ExceptionHandler<E> exceptionHandler) {
 		mCollectionFactory = collectionFactory;
@@ -20,7 +20,7 @@ public class SimpleBusFactory<E> implements OpFactory<E, E> {
 	}
 
 	@Override
-	public Op<E, E> createOp() {
+	public SimpleEventBus<E> createOp() {
 		return new SimpleEventBus<E>(mCollectionFactory.<Receiver<? super E>>create(), mExceptionHandler);
 	}
 }

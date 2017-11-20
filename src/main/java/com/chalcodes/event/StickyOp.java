@@ -1,20 +1,17 @@
 package com.chalcodes.event;
 
-import javax.annotation.Nullable;
-
 /**
- * An op that retains a reference to the last event emitted and delivers it to
- * any subsequently registered receiver.
+ * An op that may retain references to events.
  *
  * @author Kevin Krumwiede
  */
 public interface StickyOp<I, O> extends Op<I, O> {
 	/**
-	 * Sets or clears the sticky event without notifying registered receivers.
-	 *
-	 * @param event the new event, or null to clear
-	 * @return the previous event, or null
+	 * Removes references to events.
 	 */
-	@Nullable
-	O setEvent(@Nullable O event);
+	void removeEvents();
+
+	// TODO consider removing this class
+	// the original idea was to allow events to be cleared to prevent leaks.
+	// but it might be better to design programs so streams have the same scope as the events they carry.
 }

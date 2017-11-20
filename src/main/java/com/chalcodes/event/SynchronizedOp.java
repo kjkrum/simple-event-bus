@@ -8,14 +8,27 @@ import javax.annotation.Nonnull;
  * @author Kevin Krumwiede
  */
 public class SynchronizedOp<I, O> implements Op<I, O> {
-	final Op<I, O> mOp;
-	final Object mLock;
+	private final Op<I, O> mOp;
+	private final Object mLock;
 
+	/**
+	 * Creates a new synchronized wrapper around the specified op, using the
+	 * specified lock.
+	 *
+	 * @param op the op
+	 * @param lock the lock
+	 */
 	public SynchronizedOp(@Nonnull final Op<I, O> op, @Nonnull final Object lock) {
 		mOp = op;
 		mLock = lock;
 	}
 
+	/**
+	 * Creates a new synchronized wrapper around the specified op, using the
+	 * op itself as the lock.
+	 *
+	 * @param op the op
+	 */
 	public SynchronizedOp(@Nonnull final Op<I, O> op) {
 		this(op, op);
 	}

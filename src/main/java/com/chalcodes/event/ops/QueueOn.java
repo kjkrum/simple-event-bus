@@ -1,8 +1,8 @@
 package com.chalcodes.event.ops;
 
 import com.chalcodes.event.AbstractAsyncEmitter;
-import com.chalcodes.event.Op;
 import com.chalcodes.event.Receiver;
+import com.chalcodes.event.StickyOp;
 import org.jctools.queues.MpscLinkedQueue;
 
 import javax.annotation.Nonnull;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Kevin Krumwiede
  */
-public final class QueueOn<E> extends AbstractAsyncEmitter<E> implements Op<E, E> {
+public final class QueueOn<E> extends AbstractAsyncEmitter<E> implements StickyOp<E, E> {
 	private final AbstractQueue<E> mQueue = MpscLinkedQueue.newMpscLinkedQueue();
 	private final AtomicInteger mCounter = new AtomicInteger();
 
@@ -75,6 +75,14 @@ public final class QueueOn<E> extends AbstractAsyncEmitter<E> implements Op<E, E
 				mCounter.set(0);
 				throw e;
 			}
+		}
+	}
+
+	@Override
+	public void removeEvents() {
+		if(mCounter.getAndIncrement() == 0) {
+			mQueue.clear();
+			mCounter.set(0);
 		}
 	}
 }

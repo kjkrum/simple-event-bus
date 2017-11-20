@@ -21,7 +21,7 @@ abstract public class AbstractEmitter<E> implements Emitter<E> {
 
 	@Override
 	public boolean unregister(@Nonnull final Receiver<? super E> receiver) {
-		if(receiver.equals(mReceiver)) {
+		if(mReceiver != null && mReceiver.equals(receiver)) {
 			mReceiver = null;
 			return true;
 		}

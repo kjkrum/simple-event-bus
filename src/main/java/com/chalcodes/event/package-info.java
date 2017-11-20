@@ -5,9 +5,9 @@
  */
 package com.chalcodes.event;
 
-// TODO port old ClassBusFactory and supporting classes
 // TODO port old RegistrationHelper
 // TODO audit @Nullable/@Nonnull annotations
 // TODO standardize type parameter names
 // TODO organize packages
-// TODO maybe get rid of Stream end() methods that take params
+// TODO should ops extending AbstractEmitter null check mReceiver, or is it an error to leave them unterminated?
+// TODO unit tests for everything

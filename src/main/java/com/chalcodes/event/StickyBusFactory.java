@@ -7,13 +7,17 @@ import com.chalcodes.util.CollectionFactory;
  *
  * @author Kevin Krumwiede
  */
-public class StickyBusFactory<E> extends SimpleBusFactory<E> implements StickyOpFactory<E, E> {
-	public StickyBusFactory(final CollectionFactory collectionFactory, final ExceptionHandler<E> exceptionHandler) {
-		super(collectionFactory, exceptionHandler);
+public class StickyBusFactory<E> implements OpFactory<E, E> {
+	private final CollectionFactory mCollectionFactory;
+	private final ExceptionHandler<E> mExceptionHandler;
+
+	public StickyBusFactory(final CollectionFactory collectionFactory, final ExceptionHandler<E> exceptionHandler, final CollectionFactory collectionFactory1, final ExceptionHandler<E> exceptionHandler1) {
+		mCollectionFactory = collectionFactory1;
+		mExceptionHandler = exceptionHandler1;
 	}
 
 	@Override
-	public StickyOp<E, E> createOp() {
+	public StickyEventBus<E> createOp() {
 		return new StickyEventBus<E>(mCollectionFactory.<Receiver<? super E>>create(), mExceptionHandler);
 	}
 }

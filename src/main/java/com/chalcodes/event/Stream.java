@@ -1,5 +1,8 @@
 package com.chalcodes.event;
 
+import com.chalcodes.event.Emitter;
+import com.chalcodes.event.Op;
+import com.chalcodes.event.Receiver;
 import com.chalcodes.event.ops.*;
 
 import javax.annotation.Nonnull;
@@ -16,7 +19,7 @@ import java.util.concurrent.Executor;
 public class Stream {
 	private Stream() {}
 
-	/* Static factory methods. */
+	/* General methods. */
 
 	public static <O> EmitterBuilder<O> from(@Nonnull final Emitter<O> emitter) {
 		return new EmitterBuilder<O>(emitter);
@@ -26,7 +29,7 @@ public class Stream {
 		return new OpBuilder<I, O>(op);
 	}
 
-	/* Static convenience methods. */
+	/* Convenience methods. */
 
 	public static <E> OpBuilder<E, E> block(@Nonnull final Filter<E> filter) {
 		return pass(Filters.invert(filter));
@@ -36,8 +39,20 @@ public class Stream {
 		return from(new Catch<E>(receiver));
 	}
 
+	public static <E> OpBuilder<E, E> changed() {
+		return from(new Changed<E>());
+	}
+
+	public static <E> OpBuilder<E, E> debounce(final long intervalNanos) {
+		return from(new Debounce<E>(intervalNanos));
+	}
+
 	public static <E> OpBuilder<E, E> deliverOn(@Nonnull final Executor executor) {
 		return from(new DeliverOn<E>(executor));
+	}
+
+	public static <E> OpBuilder<E, E> ignore(final int count) {
+		return from(new Ignore<E>(count));
 	}
 
 	public static <E> OpBuilder<E, E> pass(@Nonnull final Filter<E> filter) {
@@ -51,8 +66,8 @@ public class Stream {
 	// TODO all the ops!
 
 	/**
-	 * Builds an {@link Emitter} or nothing depending on whether the
-	 * stream ends in an {@link Op} or a {@link Receiver}.
+	 * Builds an {@link Emitter} or nothing depending on whether the stream
+	 * ends in an {@link Op} or a {@link Receiver}.
 	 *
 	 * @param <O> the emitter event type
 	 */
@@ -80,6 +95,8 @@ public class Stream {
 				throw new IllegalStateException("the receiver could not be registered");
 			}
 		}
+
+		/* General methods. */
 
 		public <X> EmitterBuilder<X> to(@Nonnull final Op<O, X> op) {
 			checkTerminated();
@@ -115,8 +132,20 @@ public class Stream {
 			return to(new Catch<O>(receiver));
 		}
 
+		public EmitterBuilder<O> changed() {
+			return to(new Changed<O>());
+		}
+
+		public EmitterBuilder<O> debounce(final long intervalNanos) {
+			return to(new Debounce<O>(intervalNanos));
+		}
+
 		public EmitterBuilder<O> deliverOn(@Nonnull final Executor executor) {
 			return to(new DeliverOn<O>(executor));
+		}
+
+		public EmitterBuilder<O> ignore(final int count) {
+			return to(new Ignore<O>(count));
 		}
 
 		public EmitterBuilder<O> pass(@Nonnull final Filter<O> filter) {
@@ -144,6 +173,8 @@ public class Stream {
 			mHead = op;
 		}
 
+		/* General methods. */
+
 		@Override
 		public <X> OpBuilder<I, X> to(@Nonnull final Op<O, X> op) {
 			return (OpBuilder<I, X>) super.to(op);
@@ -152,32 +183,6 @@ public class Stream {
 		@Override
 		public <X> Op<I, X> end(@Nonnull final Op<O, X> op) {
 			return to(op).end();
-		}
-
-		public <X> StickyOp<I, X> end(@Nonnull final StickyOp<O, X> op) {
-			end((Op) op);
-			return new StickyOp<I, X>() {
-				@Override
-				public boolean register(@Nonnull final Receiver<? super X> receiver) {
-					return op.register(receiver);
-				}
-
-				@Override
-				public boolean unregister(@Nonnull final Receiver<? super X> receiver) {
-					return op.unregister(receiver);
-				}
-
-				@Override
-				public void onEvent(@Nonnull final I event) {
-					mHead.onEvent(event);
-				}
-
-				@Nullable
-				@Override
-				public X setEvent(@Nullable final X event) {
-					return op.setEvent(event);
-				}
-			};
 		}
 
 		@Override
@@ -224,8 +229,23 @@ public class Stream {
 		}
 
 		@Override
+		public OpBuilder<I, O> changed() {
+			return (OpBuilder<I, O>) super.changed();
+		}
+
+		@Override
+		public OpBuilder<I, O> debounce(final long intervalNanos) {
+			return (OpBuilder<I, O>) super.debounce(intervalNanos);
+		}
+
+		@Override
 		public OpBuilder<I, O> deliverOn(@Nonnull final Executor executor) {
 			return (OpBuilder<I, O>) super.deliverOn(executor);
+		}
+
+		@Override
+		public OpBuilder<I, O> ignore(final int count) {
+			return (OpBuilder<I, O>) super.ignore(count);
 		}
 
 		@Override

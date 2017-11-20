@@ -5,7 +5,9 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
- * A synchronous multicast sticky op. This class is not thread safe.
+ * A synchronous multicast op that retains a reference to the last event
+ * emitted and delivers it to any subsequently registered receiver. This class
+ * is not thread safe.
  *
  * @author Kevin Krumwiede
  */
@@ -36,11 +38,8 @@ public class StickyEventBus<E> extends SimpleEventBus<E> implements StickyOp<E, 
 		super.onEvent(event);
 	}
 
-	@Nullable
 	@Override
-	public E setEvent(@Nullable final E event) {
-		final E prev = mEvent;
-		mEvent = event;
-		return prev;
+	public void removeEvents() {
+		mEvent = null;
 	}
 }
