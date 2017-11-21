@@ -14,10 +14,11 @@ public interface CollectionFactory {
 	/**
 	 * Creates a new empty collection.
 	 *
-	 * @param <E>
-	 * @return
+	 * @param <E> the element type
+	 * @return a new empty collection
 	 */
 	@Nonnull <E> Collection<E> create();
+
 	/**
 	 * Creates a new collection containing the elements of the specified
 	 * collection, subject to uniqueness constraints of the new collection

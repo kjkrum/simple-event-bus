@@ -12,16 +12,16 @@ import java.util.Iterator;
  * @author Kevin Krumwiede
  */
 public class CopyOnWriteCollection<E> implements Collection<E> {
-	private final CollectionFactory mCopyFactory;
+	private final CollectionFactory mCollectionFactory;
 	private Collection<E> mCollection = Collections.emptyList();
 
-	public CopyOnWriteCollection(final CollectionFactory copyFactory) {
-		mCopyFactory = copyFactory;
+	public CopyOnWriteCollection(final CollectionFactory collectionFactory) {
+		mCollectionFactory = collectionFactory;
 	}
 
 	@Override
 	public boolean add(final E e) {
-		final Collection<E> copy = mCopyFactory.createFrom(mCollection);
+		final Collection<E> copy = mCollectionFactory.createFrom(mCollection);
 		final boolean changed = copy.add(e);
 		if(changed) {
 			mCollection = copy;
@@ -31,7 +31,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 
 	@Override
 	public boolean remove(final Object o) {
-		final Collection<E> copy = mCopyFactory.createFrom(mCollection);
+		final Collection<E> copy = mCollectionFactory.createFrom(mCollection);
 		final boolean changed = copy.remove(o);
 		if(changed) {
 			mCollection = copy;
@@ -41,7 +41,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 
 	@Override
 	public boolean addAll(@Nonnull final Collection<? extends E> c) {
-		final Collection<E> copy = mCopyFactory.createFrom(mCollection);
+		final Collection<E> copy = mCollectionFactory.createFrom(mCollection);
 		final boolean changed = copy.addAll(c);
 		if(changed) {
 			mCollection = copy;
@@ -51,7 +51,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 
 	@Override
 	public boolean removeAll(@Nonnull final Collection<?> c) {
-		final Collection<E> copy = mCopyFactory.createFrom(mCollection);
+		final Collection<E> copy = mCollectionFactory.createFrom(mCollection);
 		final boolean changed = copy.removeAll(c);
 		if(changed) {
 			mCollection = copy;
@@ -61,7 +61,7 @@ public class CopyOnWriteCollection<E> implements Collection<E> {
 
 	@Override
 	public boolean retainAll(@Nonnull final Collection<?> c) {
-		final Collection<E> copy = mCopyFactory.createFrom(mCollection);
+		final Collection<E> copy = mCollectionFactory.createFrom(mCollection);
 		final boolean changed = copy.retainAll(c);
 		if(changed) {
 			mCollection = copy;
